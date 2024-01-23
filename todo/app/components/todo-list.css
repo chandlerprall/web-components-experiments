@@ -1,0 +1,26 @@
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+slot[name=title] {
+  display: block;
+  font-weight: bold;
+}
+
+button[part=addItemButton] {
+  display: none;
+
+  &[show] {
+    display: unset;
+  }
+}
+
+input[part="addItemInput"] {
+  display: none;
+
+  &[show] {
+    display: unset;
+  }
+}

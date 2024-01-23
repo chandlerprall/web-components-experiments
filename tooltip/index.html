@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  
+<body>
+  <p>
+    Hello, I am a <my-tooltip>frontend engineer<span slot="description">a frontend engineer creates web applications</span></my-tooltip>.
+  </p>
+
+  <template id="my-tooltip-template">
+    <style>
+      :host {
+        position: relative;
+        text-decoration: underline dashed;
+      }
+
+      [part=tooltip] {
+        display: none;
+        box-sizing: border-box;
+        background-color: #444477;
+        color: #eee;
+        padding: 8px;
+        font-size: 0.8rem;
+
+        top: 0;
+        left: 50%;
+        transform: translate(-50%, -100%);
+      }
+
+      [part=tooltip][data-tooltip-under] {
+        top: 100%;
+        transform: translate(-50%, 0);
+      }
+
+      [part=tooltip][data-tooltip-open] {
+        display: inline-block;
+      }
+      [part=tooltip][data-tooltip-set] {
+        position: absolute;
+        width: var(--my-tooltip-width, initial);
+        max-width: 200px;
+      }
+    </style>
+    <slot></slot>
+    <slot name="description" part="tooltip"></slot>
+</template>
+
+  <script type="text/javascript">
+    customElements.define('my-tooltip', class MyTooltip extends HTMLElement {
+      constructor() {
+        super();
+        const shadowRoot = this.attachShadow({
+          mode: 'open'
+        });
+        shadowRoot.appendChild(document.getElementById('my-tooltip-template').content.cloneNode(true));
+
+        this.tooltip = shadowRoot.querySelector('[part=tooltip]');
+      }
+
+      connectedCallback() {
+        if (!this.isConnected) return;
+
+        this.addEventListener('mouseenter', () => {
+          this.tooltip.setAttribute('data-tooltip-open', true);
+
+          const boundingRect = this.tooltip.getBoundingClientRect();
+          if (boundingRect.top < 0) {
+            this.tooltip.setAttribute('data-tooltip-under', true);
+          }
+
+          this.tooltip.style.setProperty('--my-tooltip-width', `${boundingRect.width}px`);
+          this.tooltip.setAttribute('data-tooltip-set', true);
+        });
+        this.addEventListener('mouseleave', () => {
+          this.tooltip.removeAttribute('data-tooltip-open');
+          this.tooltip.removeAttribute('data-tooltip-under');
+        });
+      }
+
+      disconnectedCallback() {
+        this.removeEventListener('mouseenter');
+        this.removeEventListener('mouseleave');
+      }
+    });
+  </script>
+</body>
+
+</html>

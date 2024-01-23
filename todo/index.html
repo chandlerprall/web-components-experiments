@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+  
+<body>
+  <my-app />
+
+  <template id="my-app-template">
+    <todo-list>
+      <span slot="title">My todos</span>
+      <span slot="addItemText">Add item</span>
+    </todo-list>
+  </template>
+
+  <template id="todo-list-template">
+    <style>
+      ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      slot[name=title] {
+        display: block;
+        font-weight: bold;
+      }
+
+      button[part=addItemButton] {
+        display: none;
+
+        &[show] {
+          display: unset;
+        }
+      }
+
+      input[part="addItemInput"] {
+        display: none;
+
+        &[show] {
+          display: unset;
+        }
+      }
+    </style>
+    <slot name="title"></slot>
+    <ul>
+      <slot></slot>
+    </ul>
+    <slot name="addItem">
+      <button part="addItemButton"><slot name="addItemText"></slot></button>
+      <input type="text" part="addItemInput" placeholder="Mow the lawn" required />
+    </slot>
+  </template>
+
+  <template id="todo-item-template">
+    <style>
+      :host([done]) {
+        text-decoration-line: line-through;
+      }
+    </style>
+    <li><input type="checkbox" /><label><slot></slot></label></li>
+  </template>
+
+  <script type="text/javascript">
+    class ContainedNodeArray extends Array {
+      connectedElement = null;
+
+      connect(element) {
+        this.disconnect();
+        this.connectedElement = element;
+
+        for (let i = 0; i < this.length; i++) {
+          const node = this[i];
+          this.connectedElement.appendChild(node);
+        }
+      }
+
+      disconnect() {
+        for (let i = 0; i < this.length; i++) {
+          const node = this[i];
+          node.parentNode?.removeChild(node);
+        }
+      }
+      
+      push(...nodes) {
+        const result = super.push(...nodes);
+        this.connectedElement?.append(...nodes);
+        return result;
+      }
+
+      splice() {
+        throw new Error('unimplemented');
+      }
+
+      splice() {
+        throw new Error('unimplemented');
+      }
+
+      unshift() {
+        throw new Error('unimplemented');
+      }
+
+      pop() {
+        throw new Error('unimplemented');
+      }
+    }
+
+    const domParser = new DOMParser();
+    const html = (strings, ...rest) => {
+      const allParts = [...strings];
+      for (let i = 0; i < rest.length; i++) {
+        allParts.splice(i * 2 + 1, 0, rest[i]);
+      }
+      const lines = allParts.join('').split(/[\r\n]+/g);
+      for (let i = 0; i < lines.length; i++) {
+        lines[i] = lines[i].trim();
+      }
+
+      const document = domParser.parseFromString(lines.join(''), 'text/html');
+      const children = document.body.children;
+      
+      const nodeArray = new ContainedNodeArray();
+      nodeArray.push(...children);
+      return nodeArray;
+    }
+
+    customElements.define('my-app', class MyApp extends HTMLElement {
+      items = html`
+        <todo-item>First</todo-item>
+        <todo-item done>Second</todo-item>
+      `;
+
+      constructor() {
+        super();
+
+        const shadowRoot = this.attachShadow({
+          mode: 'open'
+        });
+        shadowRoot.appendChild(document.getElementById('my-app-template').content.cloneNode(true));
+
+        const todoList = shadowRoot.querySelector('todo-list');
+        todoList.addEventListener("todo-item-toggle", (e) => {
+          if (e.detail.checked) {
+            e.target.setAttribute("done", "");
+          } else {
+            e.target.removeAttribute("done");
+          }
+        });
+        
+        todoList.addEventListener("todo-list-item-added", (e) => {
+          if (this.items.length >= 5) {
+            e.preventDefault();
+          } else {
+            const el = html`<todo-item>${e.detail.item}</todo-item>`;
+            this.items.push(...el);
+          }
+        });
+
+        this.items.connect(shadowRoot.querySelector('todo-list'));
+      }
+    });
+
+    customElements.define('todo-list', class TodoList extends HTMLElement {
+      constructor() {
+        super();
+        const shadowRoot = this.attachShadow({
+          mode: 'open'
+        });
+        shadowRoot.appendChild(document.getElementById('todo-list-template').content.cloneNode(true));
+
+        this.#validateChildren(shadowRoot);
+
+        const btn = shadowRoot.querySelector('[part=addItemButton]');
+        const input = shadowRoot.querySelector('[part=addItemInput]');
+        btn.addEventListener('slotchange', (e) => {
+          const hasNodes = e.target.assignedNodes().length > 0;
+          if (hasNodes) {
+            btn.setAttribute('show', '');
+          } else {
+            btn.removeAttribute('show');
+          }
+        });
+
+        btn.addEventListener('click', () => {
+          btn.removeAttribute('show');
+          input.setAttribute('show', '');
+          input.focus();
+        });
+
+        input.addEventListener('keyup', (e) => {
+          if (e.key === "Escape") {
+            btn.setAttribute('show', '');
+            input.removeAttribute('show');
+          } else if (e.key === "Enter") {
+            if (input.checkValidity()) {
+              const event = new CustomEvent('todo-list-item-added', {
+                composed: true,
+                bubbles: true,
+                cancelable: true,
+                detail: {
+                  item: input.value
+                },
+              });
+              this.dispatchEvent(event);
+
+              if (!event.defaultPrevented) {
+                btn.setAttribute('show', '');
+                input.removeAttribute('show');
+                input.value = "";
+              }
+            }
+          }
+        });
+      }
+
+      #validateChildren(root) {
+        const todoNodes = root.querySelector('slot:not([name])').assignedNodes();
+        todoNodes.forEach(node => {
+          if (node.nodeName === "#text") {
+            node.parentNode.removeChild(node);
+          } else if (node.nodeName !== 'TODO-ITEM') {
+            throw new Error(`Invalid child node ${node.nodeName} provided to todo-list's todo slot, expected only todo-item`);
+          }
+        });
+      }
+    });
+
+    customElements.define('todo-item', class TodoItem extends HTMLElement {
+      static observedAttributes = ['done'];
+
+      get isChecked() {
+        return this.getAttribute("done") != null;
+      }
+
+      constructor() {
+        super();
+        const shadowRoot = this.attachShadow({
+          mode: 'open'
+        });
+        shadowRoot.appendChild(document.getElementById('todo-item-template').content.cloneNode(true));
+
+        const id = Math.random();
+        shadowRoot.querySelector('input[type=checkbox]').setAttribute('id', id);
+        shadowRoot.querySelector('label').setAttribute('for', id);
+
+        shadowRoot.querySelector('input[type=checkbox]').addEventListener("change", () => {
+          this.#syncElements();
+          this.dispatchEvent(new CustomEvent("todo-item-toggle", {
+            composed: true,
+            bubbles: true,
+            cancelable: false,
+            detail: {
+              checked: !this.isChecked,
+            },
+          }));
+        });
+        this.#syncElements();
+      }
+
+      #syncElements() {
+        this.shadowRoot.querySelector('input[type=checkbox]').checked = this.isChecked;
+      }
+
+      attributeChangedCallback() {
+        this.#syncElements(); 
+      }
+    });
+  </script>
+</body>
+
+</html>
