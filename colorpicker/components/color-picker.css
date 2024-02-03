@@ -1,0 +1,66 @@
+.colorpicker {
+	width: 250px;
+}
+
+.colorBox {
+	position: relative;
+	width: 100%;
+	aspect-ratio: 1;
+	background-color: blue;
+}
+
+.saturationBg {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(to right, #fff 0%, #fff0 100%)
+}
+.lightnessBg {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(to bottom, #0000 0%, #000 100%)
+}
+#colorIndicator {
+	position: absolute;
+	width: 6px;
+	height: 6px;
+	border: 2px solid #fffa;
+	background-color: transparent;
+	border-radius: 50%;
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.values {
+	input[type=range] {
+		overflow: hidden;
+		display: block;
+		width: 100%;
+	}
+
+	.hueSlider {
+		-webkit-appearance: none;
+	}
+	.hueSlider::-webkit-slider-runnable-track {
+		color: blue;
+		background: linear-gradient(to right, red 0%, #ff0 17%, lime 33%, cyan 50%, blue 66%, #f0f 83%, red 100%);
+		height: 10px;
+	}
+}
+
+#result {
+	font-family: monospace;
+	position: relative;
+	height: 20px;
+
+	#colorResult {
+		display: inline-block;
+		position: absolute;
+		right: 0;
+		height: 100%;
+		aspect-ratio: 1;
+	}
+}
