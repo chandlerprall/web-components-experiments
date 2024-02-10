@@ -1,0 +1,14 @@
+<script>
+const name = new DataConnection('');
+const password = new DataConnection('');
+
+this.html = component`
+  <div>
+		<login-input value=${name}></login-input>
+		<br/>
+		<login-input type="password" value=${password}></login-input>
+		<br/>
+		<button onclick=${() => alert(`Name: ${name} Password: ${password}`)}>Login</button>
+  </div>
+`;
+</script>

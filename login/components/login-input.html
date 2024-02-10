@@ -1,0 +1,7 @@
+<script>
+this.html = component`
+		<input type=${attributes.type} value=${attributes.value} onchange=${e => {
+			attributes.value.value = e.target.value}
+} />
+`;
+</script>
