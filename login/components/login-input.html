@@ -1,7 +1,7 @@
 <script>
-this.html = component`
+render`
 		<input type=${attributes.type} value=${attributes.value} onchange=${e => {
-			attributes.value.value = e.target.value}
+			attributes.value = e.target.value}
 } />
 `;
 </script>

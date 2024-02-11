@@ -1,14 +1,43 @@
 <script>
 const name = new DataConnection('');
 const password = new DataConnection('');
+const result = new DataConnection('');
 
-this.html = component`
-  <div>
-		<login-input value=${name}></login-input>
-		<br/>
-		<login-input type="password" value=${password}></login-input>
-		<br/>
-		<button onclick=${() => alert(`Name: ${name} Password: ${password}`)}>Login</button>
-  </div>
+render`
+  <form onsubmit=${login} class="container">
+    <div>
+			<login-input value=${name}></login-input>
+			<br/>
+			<login-input type="password" value=${password}></login-input>
+			<br/>
+			<button>Login</button>
+			${result}
+		</div>
+  </form>
 `;
+
+async function login(e) {
+	e.stopImmediatePropagation();
+	e.preventDefault();
+
+	result.value = '';
+	try {
+		await doLogin(name.value, password.value);
+		result.value = 'Logged in';
+	} catch(e) {
+		result.value = 'Invalid login';
+	}
+}
+
+async function doLogin(username, password) {
+	return await new Promise((resolve, reject) => {
+		setTimeout(() => {
+			if (username === 'admin' && password === 'password') {
+				resolve();
+			} else {
+				reject();
+			}
+		}, 100);
+	});
+}
 </script>

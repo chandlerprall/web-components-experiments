@@ -194,7 +194,7 @@ function getAttributeForExpression(prevString) {
 const CREATED_ELEMENT = Symbol('created element');
 const idToValueMap = {};
 
-const component = (strings, ...rest) => {
+const render = (strings, ...rest) => {
   const hydrations = [];
   const allParts = [...strings];
 
@@ -268,7 +268,23 @@ function loadComponent(name) {
     const [, templateScript] = html.match(/^<script>(.*?)<\/script>/s) ?? [];
 
     const ComponentClass = class extends HTMLElement {
-      #attributes = {};
+      #attributes = new Proxy(
+        {},
+        {
+          set: (target, key, value) => {
+            if (value instanceof DataConnection) {
+              target[key] = value;
+            } else {
+              target[key].value = value;
+            }
+            return true;
+          },
+          get: (target, key) => {
+            return target[key];
+          }
+        }
+      );
+
       [CREATED_ELEMENT] = true;
 
       attributeChangedCallback(name, oldValue, newValue) {
@@ -303,17 +319,6 @@ function loadComponent(name) {
         });
         shadowRoot.appendChild(template.content.cloneNode(true));
 
-        Object.defineProperty(
-          this,
-          'html',
-          {
-            set({ html, hydrate }) {
-              shadowRoot.innerHTML = `${hasCss ? `<style>${css}</style>` : ''}${html}`;
-              hydrate(shadowRoot);
-            }
-          }
-        )
-
         queueMicrotask(this.#initialize.bind(this));
       }
 
@@ -327,8 +332,18 @@ function loadComponent(name) {
 
         // run script
         if (templateScript) {
-          const script = new Function('attributes', templateScript);
-          script.call(this, this.#attributes);
+          const script = new Function('render, attributes', templateScript);
+          script.call(
+            this,
+            (...args) => {
+              const { html, hydrate } = render(...args);
+              this.shadowRoot.innerHTML = `${hasCss ? `<style>${css}</style>` : ''}${html}`;
+              hydrate(this.shadowRoot);
+
+              this.html = render(...args);
+            },
+            this.#attributes
+          );
         }
       }
 
