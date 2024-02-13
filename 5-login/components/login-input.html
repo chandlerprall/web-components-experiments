@@ -1,0 +1,7 @@
+<script>
+render`
+		<input type=${attributes.type} value=${attributes.value} placeholder=${attributes.placeholder} onchange=${e => {
+			attributes.value = e.target.value}
+} />
+`;
+</script>

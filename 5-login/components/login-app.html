@@ -6,9 +6,9 @@ const result = new DataConnection('');
 render`
   <form onsubmit=${login} class="container">
     <div>
-			<login-input value=${name}></login-input>
+			<login-input value=${name} placeholder="username"></login-input>
 			<br/>
-			<login-input type="password" value=${password}></login-input>
+			<login-input type="password" value=${password} placeholder="password"></login-input>
 			<br/>
 			<button>Login</button>
 			${result}

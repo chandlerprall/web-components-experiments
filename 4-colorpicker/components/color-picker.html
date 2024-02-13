@@ -19,7 +19,7 @@ const updateLightness = (lightness) => {
 const updateColor = () => {
 	const indicator = this.shadowRoot.getElementById('colorIndicator');
 	indicator.style.left = `${this.saturation.value}%`;
-	indicator.style.top = `${this.lightness.value}%`;
+	indicator.style.top = `${100 - this.lightness.value}%`;
 
 	this.shadowRoot.getElementById('colorResult').style.backgroundColor = `hsl(${this.hue.value}, ${this.saturation.value}%, ${this.lightness.value}%)`;
 }
@@ -29,7 +29,7 @@ this.lightness.onUpdate(updateColor);
 
 const getValuesFromClickEvent = (e) => {
 	const saturation = e.offsetX / e.target.clientWidth * 100;
-	const lightness = e.offsetY / e.target.clientHeight * 100;
+	const lightness = 100 - (e.offsetY / e.target.clientHeight * 100);
 	this.saturation.value = saturation.toFixed(2);
 	this.lightness.value = lightness.toFixed(2);
 };
