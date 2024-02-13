@@ -141,12 +141,16 @@ function processPart(part, attribute, hydrations) {
     const id = uniqueId();
     idToValueMap[id] = part;
     if (attribute) {
-      hydrations.push({ type: 'attribute', attribute, part, id });
+      hydrations.push({type: 'attribute', attribute, part, id});
       return `"${id}"`;
     } else {
-      hydrations.push({ type: 'dom', part, id });
+      hydrations.push({type: 'dom', part, id});
       return `<data id="${id}"></data>`;
     }
+  } else if (part && ATTRIBUTE_MAP in part) {
+    const id = uniqueId();
+    hydrations.push({ type: 'attributemap', part, id });
+    return `data-attribute-map=${id}`;
   } else if (part instanceof ContainedNodeArray) {
     const id = uniqueId();
     idToValueMap[id] = part;
@@ -161,6 +165,8 @@ function processPart(part, attribute, hydrations) {
     part = part.html;
   } else if (Array.isArray(part)) {
     return part.map(part => processPart(part, hydrations)).join('');
+  } else if (attribute) {
+    return `"${part}"`;
   }
   return part;
 }
@@ -191,7 +197,9 @@ function getAttributeForExpression(prevString) {
   };
 }
 
+const ATTRIBUTE_MAP = Symbol('attribute map');
 const CREATED_ELEMENT = Symbol('created element');
+
 const idToValueMap = {};
 
 const render = (strings, ...rest) => {
@@ -209,16 +217,16 @@ const render = (strings, ...rest) => {
   }
 
   const html = lines.join('\n');
-  const hydrate = (parent) => {
+  const hydrate = (owningElement) => {
     for (const hydration of hydrations) {
       const { type } = hydration
       if (type === 'dom') {
         const { id, part } = hydration;
-        const dataNode = parent.querySelector(`[id="${id}"]`);
+        const dataNode = owningElement.shadowRoot.querySelector(`[id="${id}"]`);
         part.connect(dataNode, { replace: true });
       } else if (type === 'attribute') {
         const { id, attribute, part } = hydration;
-        const element = parent.querySelector(`[${attribute.name}="${id}"]`);
+        const element = owningElement.shadowRoot.querySelector(`[${attribute.name}="${id}"]`);
 
         if (element[CREATED_ELEMENT]) {
           // element came from us and already has the attribute set to the id
@@ -234,6 +242,17 @@ const render = (strings, ...rest) => {
           part.onUpdate(updateAttribute);
           updateAttribute();
         }
+      } else if (type === 'attributemap') {
+        // @TODO: garbage collection
+        const { part: { [ATTRIBUTE_MAP]: publisher, ...part }, id } = hydration;
+        const updateAttributes = () => {
+          for (const attributeName in part) {
+            const targetElement = owningElement.shadowRoot.querySelector(`[data-attribute-map="${id}"]`);
+            targetElement.setAttribute(attributeName, part[attributeName].value);
+          }
+        };
+        updateAttributes();
+        publisher.onUpdate(() => updateAttributes());
       }
     }
   };
@@ -255,7 +274,7 @@ function loadComponent(name) {
       reject(new Error(`Could not load HTML for ${name}: ${htmlResult.reason}`));
     }
 
-    const hasCss = cssResult.status === "fulfilled";
+    const hasCss = cssResult.status === "fulfilled" && cssResult.value.ok;
 
     const html = (await htmlResult.value.text())
       .split(/[\r\n]+/g)
@@ -268,8 +287,10 @@ function loadComponent(name) {
     const [, templateScript] = html.match(/^<script>(.*?)<\/script>/s) ?? [];
 
     const ComponentClass = class extends HTMLElement {
+      [CREATED_ELEMENT] = true;
+
       #attributes = new Proxy(
-        {},
+        { [ATTRIBUTE_MAP]: new DataConnection(0) },
         {
           set: (target, key, value) => {
             if (value instanceof DataConnection) {
@@ -277,6 +298,9 @@ function loadComponent(name) {
             } else {
               target[key].value = value;
             }
+
+            target[ATTRIBUTE_MAP].value++;
+
             return true;
           },
           get: (target, key) => {
@@ -285,34 +309,24 @@ function loadComponent(name) {
         }
       );
 
-      [CREATED_ELEMENT] = true;
-
-      attributeChangedCallback(name, oldValue, newValue) {
-        if (newValue?.match(/^_unique_id_\d+/)) {
-          // @TODO: if oldValue is a unique id match, disconnect it
-          // @TODO: garbage collection (call offUpdate on component disconnectedCallback?)
-          const data = idToValueMap[newValue];
-          data.onUpdate(nextValue => {
-            this.#attributes[name].value = nextValue;
-          });
-          this.#attributes[name].onUpdate(nextValue => {
-            data.value = nextValue;
-          });
-
-          this.#attributes[name].value = data.value;
-        } else {
-          this.#attributes[name].value = newValue;
-        }
-      }
-
       constructor() {
         super();
 
-        const observedAttributes = this.constructor.observedAttributes ?? [];
-        for (let i = 0; i < observedAttributes.length; i++) {
-          const attributeName = observedAttributes[i];
-          this.#attributes[attributeName] = new DataConnection(this.getAttribute(attributeName));
+        for (const attributeName of this.getAttributeNames()) {
+          const attributeValue = this.getAttribute(attributeName);
+          this.#attachAttribute(attributeName, attributeValue);
         }
+
+        const mutationObserver = new MutationObserver((mutations) => {
+          for (let i = 0; i < mutations.length; i++) {
+            const mutation = mutations[i];
+            if (mutation.type !== 'attributes') continue;
+            const { attributeName, oldValue } = mutation;
+            const value = this.getAttribute(attributeName);
+            this.#attachAttribute(attributeName, value, oldValue);
+          }
+        });
+        mutationObserver.observe(this, { attributes: true, attributeOldValue: true });
 
         const shadowRoot = this.attachShadow({
           mode: 'open'
@@ -320,6 +334,27 @@ function loadComponent(name) {
         shadowRoot.appendChild(template.content.cloneNode(true));
 
         queueMicrotask(this.#initialize.bind(this));
+      }
+
+      #attachAttribute(attributeName, value, oldValue) {
+        if (!this.#attributes.hasOwnProperty(attributeName)) {
+          this.#attributes[attributeName] = new DataConnection('asdf');
+        }
+
+        if (value?.match(/^_unique_id_\d+/)) {
+          // @TODO: garbage collection (call offUpdate on component disconnectedCallback?)
+          const data = idToValueMap[value];
+          data.onUpdate(nextValue => {
+            this.#attributes[attributeName] = nextValue;
+          });
+          this.#attributes[attributeName].onUpdate(nextValue => {
+            data.value = nextValue;
+          });
+
+          this.#attributes[attributeName].value = data.value;
+        } else {
+          this.#attributes[attributeName].value = value;
+        }
       }
 
       #initialize() {
@@ -338,8 +373,7 @@ function loadComponent(name) {
             (...args) => {
               const { html, hydrate } = render(...args);
               this.shadowRoot.innerHTML = `${hasCss ? `<style>${css}</style>` : ''}${html}`;
-              hydrate(this.shadowRoot);
-
+              hydrate(this);
               this.html = render(...args);
             },
             this.#attributes

@@ -44,3 +44,15 @@ customElements.define(
 	}
 );
 ```
+
+#### Forwarding attribute groups
+
+A common pattern is to pass unused attributes to a child element. This is possible by passing the `attributes` map - or a subset of elements - to an element.
+
+```html
+<script>
+render`
+  const { someCustomValue, ...rest } = attributes;
+  <div ${rest}>you said ${someCustomValue}</div>
+`;
+```

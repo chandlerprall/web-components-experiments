@@ -1,6 +1,8 @@
 <script>
+const { value, ...rest } = attributes;
+
 render`
-		<input type=${attributes.type} value=${attributes.value} placeholder=${attributes.placeholder} onchange=${e => {
+		<input value=${value} ${rest} onchange=${e => {
 			attributes.value = e.target.value}
 } />
 `;
