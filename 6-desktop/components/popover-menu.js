@@ -29,7 +29,12 @@ registerComponent('popover-menu', ({ render, attributes, refs }) => {
 <style>
 .popover-menu {
 	display: inline-block;
+	height: inherit;
 	position: relative;
+}
+
+#anchor {
+	height: inherit;
 }
 
 #content {
@@ -48,6 +53,10 @@ registerComponent('popover-menu', ({ render, attributes, refs }) => {
 	&.open {
 		display: flex;
 	}
+}
+
+:host {
+	display: inline-block;
 }
 
 menu ::slotted(button) {

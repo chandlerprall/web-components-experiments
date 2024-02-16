@@ -8,34 +8,46 @@ registerComponent('desktop-app', ({ render }) => {
 	margin: 0;
 	width: 100%;
 	height: 100%;
+	background-image: url("./background.png");
+	background-size: cover;
+	background-position: center;
 }
 
 #taskbar {
-	display: flex;
-	justify-content: center;
-	align-content: center;
-	flex-wrap: wrap;
-	position: fixed;
-	bottom: 0;
-	width: 100%;
 	height: 40px;
-	background-color: var(--token-color-system);
-	border-top: 1px solid var(--token-color-border);
+	
+	popover-menu {
+		height: 100%;
+	}
 }
+
+.taskbarButton {
+	padding: 0;
+	margin: 0;
+	height: 100%;
+	min-height: inherit;
+	aspect-ratio: 1;
+	border: 0;
+	
+	&:hover {
+		filter: brightness(1.05);
+	}
+	&:active {
+		filter: brightness(0.95);
+	}
 </style>
 
 <main id="desktop">
 	<section id="shortcuts"></section>
 	<section id="windows"></section>
-	<section id="taskbar">
+	<desktop-taskbar id="taskbar">
 		<popover-menu direction="up">
-			<button>▶️</button>
+			<button class="taskbarButton">▶️</button>
 			
 			<button slot="menu">📒 Notepad</button>
 			<button slot="menu">🧮 Calculator</button>
-			</div>
 		</popover-menu>
-	</section>
+	</desktop-taskbar>
 </main>
 	`;
 });
