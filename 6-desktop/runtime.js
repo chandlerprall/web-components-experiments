@@ -115,7 +115,7 @@ export class State {
 }
 
 const domParser = new DOMParser();
-export const html = (strings, ...rest) => {
+export const html = (strings = [''], ...rest) => {
   const allParts = [...strings];
   for (let i = 0; i < rest.length; i++) {
     allParts.splice(i * 2 + 1, 0, rest[i]);
@@ -126,9 +126,13 @@ export const html = (strings, ...rest) => {
   }
 
   const document = domParser.parseFromString(lines.join('\n'), 'text/html');
-  const children = document.body.children;
+  const children = document.body.childNodes;
 
   return new ContainedNodeArray(...children);
+}
+
+export const node = (strings, ...rest) => {
+  return html(strings, ...rest)[0];
 }
 
 let _id = 0;
@@ -357,6 +361,7 @@ export function registerComponent(name, componentDefinition) {
 
       // run component definition
       if (isComponentFunction) {
+        // @TODO: alert component definition on unmount
         componentDefinition({
           element: this,
           render: (...args) => {

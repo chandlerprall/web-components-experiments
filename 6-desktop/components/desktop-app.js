@@ -1,4 +1,5 @@
-import { registerComponent } from 'runtime';
+import { registerComponent, node } from 'runtime';
+import { Window, windows } from '../windowmanager.js'
 
 registerComponent('desktop-app', ({ render }) => {
 	render`
@@ -8,7 +9,7 @@ registerComponent('desktop-app', ({ render }) => {
 	margin: 0;
 	width: 100%;
 	height: 100%;
-	background-image: url("./background.png");
+	background-image: url("./images/backgrounds/00061-3864669736.png");
 	background-size: cover;
 	background-position: center;
 }
@@ -35,19 +36,28 @@ registerComponent('desktop-app', ({ render }) => {
 	&:active {
 		filter: brightness(0.95);
 	}
+}
+
+#calculator {
+	top: 50px;
+}
 </style>
 
 <main id="desktop">
 	<section id="shortcuts"></section>
-	<section id="windows"></section>
+	<section id="windows">${windows}</section>
 	<desktop-taskbar id="taskbar">
 		<popover-menu direction="up">
 			<button class="taskbarButton">▶️</button>
 			
 			<button slot="menu">📒 Notepad</button>
-			<button slot="menu">🧮 Calculator</button>
+			<button slot="menu" onClick=${launchCalculator}>🧮 Calculator</button>
 		</popover-menu>
 	</desktop-taskbar>
 </main>
 	`;
 });
+
+function launchCalculator() {
+	new Window(node`Calc`, node`test`);
+}
