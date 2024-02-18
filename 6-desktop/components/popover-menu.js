@@ -5,6 +5,9 @@ registerComponent('popover-menu', ({ render, attributes, refs }) => {
 	const onAnchorClick = () => {
 		isOpen.value = !isOpen.value;
 	};
+	const onMenuClick = () => {
+		isOpen.value = false;
+	}
 
 	let leavingTimeout;
 	const onMouseLeave = () => {
@@ -75,7 +78,7 @@ menu ::slotted(button:active) {
 
 <section class="popover-menu" onmouseleave=${onMouseLeave} onmouseenter=${onMouseEnter}>
 	<div id="anchor" onclick=${onAnchorClick}><slot></slot></div>
-	<menu id="content"><slot name="menu"></slot></menu>
+	<menu id="content" onclick=${onMenuClick}><slot name="menu"></slot></menu>
 </section>
 `;
 });

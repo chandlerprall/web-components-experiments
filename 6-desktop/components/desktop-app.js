@@ -1,5 +1,5 @@
 import { registerComponent, node } from 'runtime';
-import { Window, windows } from '../windowmanager.js'
+import { Window, windows, taskbarButtons } from '../windowmanager.js'
 
 registerComponent('desktop-app', ({ render }) => {
 	render`
@@ -53,11 +53,12 @@ registerComponent('desktop-app', ({ render }) => {
 			<button slot="menu">📒 Notepad</button>
 			<button slot="menu" onClick=${launchCalculator}>🧮 Calculator</button>
 		</popover-menu>
+		${taskbarButtons}
 	</desktop-taskbar>
 </main>
 	`;
 });
 
 function launchCalculator() {
-	new Window('Calc', 'content');
+	new Window('🧮', 'Calc', 'content');
 }

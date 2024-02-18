@@ -1,29 +1,36 @@
-import { html, node, element } from 'runtime';
+import { html, element } from 'runtime';
 
 export const windows = html();
+export const taskbarButtons = html();
 
 export class Window {
+	#icon = null;
 	#title = null;
 	#content = null;
 	#element = null;
+	#taskbarButton = null;
 
-	constructor(title, content) {
+	constructor(icon, title, content) {
+		this.#icon = icon;
 		this.#title = title;
 		this.#content = content;
+
 		this.#element = element`
 			<desktop-window onmousedown=${() => this.focus()}>
-				<span slot="title">${title}</span>
+				<span slot="title">${icon} ${title}</span>
 				<div slot="content">${content}</div>
 			</desktop-window>
 		`;	
 
 		this.#element.style.width = '640px';
 		this.#element.style.height = '480px';
-
 		this.#element.style.top = `${Math.max(window.innerHeight / 2 - 240, 0)}px`;
 		this.#element.style.left = `${Math.max(window.innerWidth / 2 - 320, 0)}px`;
-
 		windows.push(this.#element);
+
+		this.#taskbarButton = element`<button onclick=${() => this.focus()}>${icon}</button>`;
+		taskbarButtons.push(this.#taskbarButton);
+
 		this.focus();
 	}
 
@@ -39,5 +46,14 @@ export class Window {
 		}
 
 		this.#element.style.zIndex = windows.length;
+
+		for (let i = 0; i < taskbarButtons.length; i++) {
+			const taskbarButton = taskbarButtons[i];
+			if (taskbarButton === this.#taskbarButton) {
+				taskbarButton.classList.add('active');
+			} else {
+				taskbarButton.classList.remove('active');
+			}
+		}
 	}
 }
