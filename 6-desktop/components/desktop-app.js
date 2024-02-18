@@ -50,7 +50,7 @@ registerComponent('desktop-app', ({ render }) => {
 		<popover-menu direction="up">
 			<button class="taskbarButton">▶️</button>
 			
-			<button slot="menu">📒 Notepad</button>
+			<button slot="menu" onClick=${launchNotepad}>📝 Notepad</button>
 			<button slot="menu" onClick=${launchCalculator}>🧮 Calculator</button>
 		</popover-menu>
 		${taskbarButtons}
@@ -61,4 +61,7 @@ registerComponent('desktop-app', ({ render }) => {
 
 function launchCalculator() {
 	new Window('🧮', 'Calc', 'content');
+}
+function launchNotepad() {
+	new Window('📝', 'Notepad', '<notepad-app></notepad-app>');
 }

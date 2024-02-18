@@ -20,12 +20,14 @@ export class Window {
 				<span slot="title">${icon} ${title}</span>
 				<div slot="content">${content}</div>
 			</desktop-window>
-		`;	
+		`;
 
 		this.#element.style.width = '640px';
 		this.#element.style.height = '480px';
 		this.#element.style.top = `${Math.max(window.innerHeight / 2 - 240, 0)}px`;
 		this.#element.style.left = `${Math.max(window.innerWidth / 2 - 320, 0)}px`;
+
+		this.#element.querySelector('[slot=content]').style.height = '100%';
 		windows.push(this.#element);
 
 		this.#taskbarButton = element`<button onclick=${() => this.focus()}>${icon}</button>`;
