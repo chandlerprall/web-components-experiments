@@ -59,5 +59,5 @@ registerComponent('desktop-app', ({ render }) => {
 });
 
 function launchCalculator() {
-	new Window(node`Calc`, node`test`);
+	new Window('Calc', 'content');
 }

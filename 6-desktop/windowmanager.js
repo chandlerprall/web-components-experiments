@@ -1,4 +1,4 @@
-import { html, node } from 'runtime';
+import { html, node, element } from 'runtime';
 
 export const windows = html();
 
@@ -10,27 +10,21 @@ export class Window {
 	constructor(title, content) {
 		this.#title = title;
 		this.#content = content;
-
-		this.#element = node`
-			<desktop-window>
-				<span slot="title"></span>
-				<div slot="content"></div>
+		this.#element = element`
+			<desktop-window onmousedown=${() => this.focus()}>
+				<span slot="title">${title}</span>
+				<div slot="content">${content}</div>
 			</desktop-window>
-		`;
+		`;	
 
 		this.#element.style.width = '640px';
 		this.#element.style.height = '480px';
 
-		this.#element.style.top = `${window.innerHeight / 2 - 240}px`;
-		this.#element.style.left = `${window.innerWidth / 2 - 320}px`;
-
-		this.#element.querySelector('[slot=title]').appendChild(title);
-		this.#element.querySelector('[slot=content]').appendChild(content);
-
-		this.#element.addEventListener('mousedown', () => this.focus());
-		this.focus();
+		this.#element.style.top = `${Math.max(window.innerHeight / 2 - 240, 0)}px`;
+		this.#element.style.left = `${Math.max(window.innerWidth / 2 - 320, 0)}px`;
 
 		windows.push(this.#element);
+		this.focus();
 	}
 
 	focus() {

@@ -151,7 +151,7 @@ function processPart(part, attribute, hydrations) {
       hydrations.push({type: 'dom', part, id});
       return `<data id="${id}"></data>`;
     }
-  } else if (part && ATTRIBUTE_MAP in part) {
+  } else if (part && typeof part === 'object' && ATTRIBUTE_MAP in part) {
     const id = uniqueId();
     hydrations.push({ type: 'attributemap', part, id });
     return `data-attribute-map=${id}`;
@@ -205,6 +205,7 @@ const ATTRIBUTE_MAP = Symbol('attribute map');
 const CREATED_ELEMENT = Symbol('created element');
 
 const idToValueMap = {};
+window.idToValueMap = idToValueMap;
 
 const render = (strings, ...rest) => {
   const hydrations = [];
@@ -264,6 +265,15 @@ const render = (strings, ...rest) => {
   return new ComponentDefinition(html, hydrate);
 }
 
+export const element = (...args) => {
+  const { html, hydrate } = render(...args);
+
+  const document = domParser.parseFromString(html, 'text/html');
+  const element = document.body.childNodes[0];
+  hydrate(element);
+  return element;
+}
+
 export function registerComponent(name, componentDefinition) {
   const isComponentString = typeof componentDefinition === 'string';
   const isComponentFunction = componentDefinition instanceof Function;
@@ -307,6 +317,7 @@ export function registerComponent(name, componentDefinition) {
       super();
 
       for (const attributeName of this.getAttributeNames()) {
+        if (attributeName.startsWith('on')) continue;
         const attributeValue = this.getAttribute(attributeName);
         this.#attachAttribute(attributeName, attributeValue);
       }
