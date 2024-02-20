@@ -21,7 +21,7 @@ export class ContainedNodeArray extends Array {
   disconnect() {
     for (let i = 0; i < this.length; i++) {
       const node = this[i];
-      node.parentNode?.removeChild(node);
+      node.remove();
     }
   }
 
@@ -31,7 +31,7 @@ export class ContainedNodeArray extends Array {
     return result;
   }
 
-  splice() {
+  slice() {
     throw new Error('unimplemented');
   }
 
@@ -168,8 +168,13 @@ function processPart(part, attribute, hydrations) {
   } else if (part instanceof ComponentDefinition) {
     hydrations.push(part.hydrate);
     part = part.html;
+  } else if (part instanceof HTMLElement) {
+    const id = uniqueId();
+    idToValueMap[id] = part;
+    hydrations.push({ type: 'element', part, id });
+    return `<data id="${id}"></data>`;
   } else if (Array.isArray(part)) {
-    return part.map(part => processPart(part, hydrations)).join('');
+    return part.map(part => processPart(part, attribute, hydrations)).join('');
   } else if (attribute) {
     return `"${part}"`;
   }
@@ -230,6 +235,11 @@ const render = (strings = [''], ...rest) => {
         const { id, part } = hydration;
         const dataNode = owningElement.shadowRoot.querySelector(`[id="${id}"]`);
         part.connect(dataNode, { replace: true });
+      } else if (type === 'element') {
+        const { id, part } = hydration;
+        const dataNode = owningElement.shadowRoot.querySelector(`[id="${id}"]`);
+        dataNode.before(part);
+        dataNode.remove();
       } else if (type === 'attribute') {
         const { id, attribute, part } = hydration;
         const element = owningElement.shadowRoot.querySelector(`[${attribute.name}="${id}"]`);

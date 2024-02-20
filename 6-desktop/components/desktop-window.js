@@ -31,6 +31,7 @@ registerComponent('desktop-window', ({ element, render }) => {
 	width: inherit;
   box-sizing: border-box;
   border: 1px solid var(--token-color-border);
+  overflow: hidden;
 }
 
 #titlebar {

@@ -60,7 +60,7 @@ registerComponent('desktop-app', ({ render }) => {
 });
 
 function launchCalculator() {
-	new Window('🧮', 'Calc', 'content');
+	new Window('🧮', 'Calc', '<calculator-app></calculator-app>');
 }
 function launchNotepad() {
 	new Window('📝', 'Notepad', '<notepad-app></notepad-app>');
