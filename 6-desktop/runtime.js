@@ -35,8 +35,22 @@ export class ContainedNodeArray extends Array {
     throw new Error('unimplemented');
   }
 
-  splice() {
-    throw new Error('unimplemented');
+  splice(start, deleteCount, ...items) {
+    const removedElements = super.splice(start, deleteCount, ...items);
+
+    if (this.connectedElement) {
+      for (let i = 0; i < removedElements.length; i++) {
+        this.connectedElement.removeChild(removedElements[i]);
+      }
+
+      // @TODO: if this ContainedNodeArray is empty and the connectedElement has other children,
+      // this can insert element in the wrong place
+      if (this.connectedElement.children.length === 0 || start === 0) {
+        this.connectedElement.append(...items);
+      } else {
+        this[start - 1].after(...items);
+      }
+    }
   }
 
   unshift() {
@@ -115,24 +129,11 @@ export class State {
 }
 
 const domParser = new DOMParser();
-export const html = (strings = [''], ...rest) => {
-  const allParts = [...strings];
-  for (let i = 0; i < rest.length; i++) {
-    allParts.splice(i * 2 + 1, 0, rest[i]);
-  }
-  const lines = allParts.join('').split(/[\r\n]+/g);
-  for (let i = 0; i < lines.length; i++) {
-    lines[i] = lines[i].trim();
-  }
-
-  const document = domParser.parseFromString(lines.join('\n'), 'text/html');
-  const children = document.body.childNodes;
-
-  return new ContainedNodeArray(...children);
-}
-
-export const node = (strings, ...rest) => {
-  return html(strings, ...rest)[0];
+export const html = (...args) => {
+  const { html, hydrate } = render(...args);
+  const document = domParser.parseFromString(html, 'text/html');
+  hydrate(document.body);
+  return new ContainedNodeArray(...document.body.childNodes);
 }
 
 let _id = 0;
@@ -207,7 +208,7 @@ const CREATED_ELEMENT = Symbol('created element');
 const idToValueMap = {};
 window.idToValueMap = idToValueMap;
 
-const render = (strings, ...rest) => {
+const render = (strings = [''], ...rest) => {
   const hydrations = [];
   const allParts = [...strings];
 
@@ -278,7 +279,7 @@ export function registerComponent(name, componentDefinition) {
   const isComponentString = typeof componentDefinition === 'string';
   const isComponentFunction = componentDefinition instanceof Function;
 
-  const html = isComponentString
+  isComponentString
     ? component
         .split(/[\r\n]+/g)
         .map(line => line.trim())

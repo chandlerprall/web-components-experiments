@@ -1,4 +1,5 @@
 import { registerComponent } from 'runtime';
+import { LookupWindow } from '../windowmanager.js';
 
 registerComponent('desktop-window', ({ element, render }) => {
 	const lastCursorPosition = { x: 0, y: 0 };
@@ -35,6 +36,7 @@ registerComponent('desktop-window', ({ element, render }) => {
 #titlebar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   
 	background-color: var(--token-color-system);
 	height: var(--desktop-window-titlebar-height, 25px);
@@ -42,6 +44,11 @@ registerComponent('desktop-window', ({ element, render }) => {
 	border-bottom: 1px solid var(--token-color-border);
 	
 	cursor: default;
+	
+	#close {
+		border: 0;
+		cursor: pointer;
+	}
 }
 
 #content {
@@ -50,7 +57,7 @@ registerComponent('desktop-window', ({ element, render }) => {
 }
 </style>
 
-<div id="titlebar" onMouseDown=${onTitleMouseDown}><slot name="title"></slot></div>
+<div id="titlebar" onMouseDown=${onTitleMouseDown}><slot name="title"></slot><button id="close" onclick=${() => element[LookupWindow].close()}>ⓧ</button></div>
 <div id="content"><slot name="content"></slot></div>
 	`;
 });

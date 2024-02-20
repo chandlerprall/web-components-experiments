@@ -1,4 +1,4 @@
-import { registerComponent, node } from 'runtime';
+import { registerComponent } from 'runtime';
 import { Window, windows, taskbarButtons } from '../windowmanager.js'
 
 registerComponent('desktop-app', ({ render }) => {

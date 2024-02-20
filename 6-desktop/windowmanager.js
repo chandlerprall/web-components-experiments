@@ -3,6 +3,7 @@ import { html, element } from 'runtime';
 export const windows = html();
 export const taskbarButtons = html();
 
+export const LookupWindow = Symbol('Lookup window from element');
 export class Window {
 	#icon = null;
 	#title = null;
@@ -21,6 +22,7 @@ export class Window {
 				<div slot="content">${content}</div>
 			</desktop-window>
 		`;
+		this.#element[LookupWindow] = this;
 
 		this.#element.style.width = '640px';
 		this.#element.style.height = '480px';
@@ -57,5 +59,26 @@ export class Window {
 				taskbarButton.classList.remove('active');
 			}
 		}
+	}
+
+	close() {
+		const currentZIndex = parseInt(this.#element.style.zIndex || windows.length, 10);
+
+		let myIndex;
+		for (let i = 0; i < windows.length; i++) {
+			const window = windows[i];
+			if (window === this.#element) {
+				myIndex = i;
+			} else {
+				const windowZIndex = parseInt(window.style.zIndex || windows.length, 10);
+				if (windowZIndex > currentZIndex) {
+					window.style.zIndex = windowZIndex - 1;
+				}
+			}
+		}
+		windows.splice(myIndex, 1);
+
+		const taskbarButtonIndex = taskbarButtons.indexOf(this.#taskbarButton);
+		taskbarButtons.splice(taskbarButtonIndex, 1);
 	}
 }
