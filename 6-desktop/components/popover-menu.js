@@ -2,7 +2,14 @@ import { registerComponent, State } from "runtime";
 
 registerComponent('popover-menu', ({ render, attributes, refs }) => {
 	const isOpen = new State(false);
-	const onAnchorClick = () => {
+
+	window.addEventListener('click', () => {
+		isOpen.value = false;
+	});
+
+	const onAnchorClick = (e) => {
+		e.stopImmediatePropagation();
+		e.preventDefault();
 		isOpen.value = !isOpen.value;
 	};
 	const onMenuClick = () => {

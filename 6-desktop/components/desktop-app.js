@@ -14,7 +14,12 @@ registerComponent('desktop-app', ({ render }) => {
 	background-position: center;
 }
 
+#windows {
+	z-index: 1;
+}
+
 #taskbar {
+	z-index: 2;
 	height: 40px;
 	
 	popover-menu {
@@ -48,7 +53,7 @@ registerComponent('desktop-app', ({ render }) => {
 	<section id="windows">${windows}</section>
 	<desktop-taskbar id="taskbar">
 		<popover-menu direction="up">
-			<button class="taskbarButton">▶️</button>
+			<button class="taskbarButton">❇️</button>
 			
 			<button slot="menu" onClick=${launchNotepad}>📝 Notepad</button>
 			<button slot="menu" onClick=${launchCalculator}>🧮 Calculator</button>
