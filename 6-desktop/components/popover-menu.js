@@ -1,4 +1,4 @@
-import { registerComponent, State } from "runtime";
+import { registerComponent, State } from 'runtime';
 
 registerComponent('popover-menu', ({ render, attributes, refs }) => {
 	const isOpen = new State(false);

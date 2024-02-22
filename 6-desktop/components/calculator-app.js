@@ -66,8 +66,6 @@ registerComponent('calculator-app', ({ element, render }) => {
 .calculator {
   display: grid;
   font-family: monospace;
-  height: 100%;
-	aspect-ratio: 400 / 387;
   grid-template-columns: 25% 25% 25% 25%;
   grid-template-areas:
     "result result result result"

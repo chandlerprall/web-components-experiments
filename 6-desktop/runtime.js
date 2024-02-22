@@ -237,7 +237,7 @@ const render = (strings = [''], ...rest) => {
         part.connect(dataNode, { replace: true });
       } else if (type === 'element') {
         const { id, part } = hydration;
-        const dataNode = owningElement.shadowRoot.querySelector(`[id="${id}"]`);
+        const dataNode = (owningElement.shadowRoot ?? owningElement).querySelector(`[id="${id}"]`);
         dataNode.before(part);
         dataNode.remove();
       } else if (type === 'attribute') {
@@ -285,7 +285,7 @@ export const element = (...args) => {
   return element;
 }
 
-export function registerComponent(name, componentDefinition) {
+export function registerComponent(name, componentDefinition, BaseClass = HTMLElement) {
   const isComponentString = typeof componentDefinition === 'string';
   const isComponentFunction = componentDefinition instanceof Function;
 
@@ -299,7 +299,7 @@ export function registerComponent(name, componentDefinition) {
   const template = document.createElement('template');
   template.innerHTML = html;
 
-  const ComponentClass = class extends HTMLElement {
+  const ComponentClass = class extends BaseClass {
     [CREATED_ELEMENT] = true;
 
     #attributes = new Proxy(

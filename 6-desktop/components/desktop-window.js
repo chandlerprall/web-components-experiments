@@ -1,5 +1,4 @@
 import { registerComponent } from 'runtime';
-import { LookupWindow } from '../windowmanager.js';
 
 registerComponent('desktop-window', ({ element, render }) => {
 	const lastCursorPosition = { x: 0, y: 0 };
@@ -22,6 +21,8 @@ registerComponent('desktop-window', ({ element, render }) => {
 		lastCursorPosition.x = clientX;
 		lastCursorPosition.y = clientY;
 	}
+
+	element.addEventListener('mousedown', () => element.focus());
 
 	render`
 <style>
@@ -58,7 +59,21 @@ registerComponent('desktop-window', ({ element, render }) => {
 }
 </style>
 
-<div id="titlebar" onMouseDown=${onTitleMouseDown}><slot name="title"></slot><button id="close" onclick=${() => element[LookupWindow].close()}>ⓧ</button></div>
-<div id="content"><slot name="content"></slot></div>
+<div id="titlebar" onMouseDown=${onTitleMouseDown}>
+	<span>
+		<slot name="icon"></slot>
+		<slot name="title"></slot>
+	</span>
+	<button id="close" onclick=${() => element.close()}>ⓧ</button>
+</div>
+<div id="content"><slot></slot></div>
 	`;
+}, class DesktopWindow extends HTMLElement {
+	focus() {
+		this.emit('focus');
+	}
+
+	close() {
+		this.emit('close');
+	}
 });

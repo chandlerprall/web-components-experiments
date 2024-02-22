@@ -3,43 +3,26 @@ import { html, element } from 'runtime';
 export const windows = html();
 export const taskbarButtons = html();
 
-export const LookupWindow = Symbol('Lookup window from element');
-export class Window {
-	#icon = null;
-	#title = null;
-	#content = null;
-	#element = null;
-	#taskbarButton = null;
-
-	constructor(icon, title, content) {
-		this.#icon = icon;
-		this.#title = title;
-		this.#content = content;
-
-		this.#element = element`
-			<desktop-window onmousedown=${() => this.focus()}>
-				<span slot="title">${icon} ${title}</span>
-				<div slot="content">${content}</div>
-			</desktop-window>
-		`;
-		this.#element[LookupWindow] = this;
-
-		this.#element.style.width = '640px';
-		this.#element.style.height = '480px';
-		this.#element.style.top = `${Math.max(window.innerHeight / 2 - 240, 0)}px`;
-		this.#element.style.left = `${Math.max(window.innerWidth / 2 - 320, 0)}px`;
-
-		this.#element.querySelector('[slot=content]').style.height = '100%';
-		windows.push(this.#element);
-
-		this.#taskbarButton = element`<button onclick=${() => this.focus()}>${icon}</button>`;
-		taskbarButtons.push(this.#taskbarButton);
-
-		this.focus();
+export const launchWindow = (windowElement) => {
+	if (windowElement.nodeName !== 'DESKTOP-WINDOW') {
+		throw new Error(`launchWindow called with element that isn't a desktop-window`);
+		return;
 	}
 
-	focus() {
-		const currentZIndex = parseInt(this.#element.style.zIndex || windows.length, 10);
+	windowElement.style.width = '640px';
+	windowElement.style.height = '480px';
+	windowElement.style.aspectRatio = '1';
+	windowElement.style.top = `${Math.max(window.innerHeight / 2 - 240, 0)}px`;
+	windowElement.style.left = `${Math.max(window.innerWidth / 2 - 320, 0)}px`;
+
+	windows.push(windowElement);
+
+	const iconElement = windowElement.querySelector('[slot=icon]')?.cloneNode(true);
+	const myTaskbarButton = element`<button onclick=${() => windowElement.focus()}>${iconElement}</button>`;
+	taskbarButtons.push(myTaskbarButton);
+
+	windowElement.addEventListener('desktop-window-focus', () => {
+		const currentZIndex = parseInt(windowElement.style.zIndex || windows.length, 10);
 
 		for (let i = 0; i < windows.length; i++) {
 			const window = windows[i];
@@ -49,25 +32,25 @@ export class Window {
 			}
 		}
 
-		this.#element.style.zIndex = windows.length;
+		windowElement.style.zIndex = windows.length;
 
 		for (let i = 0; i < taskbarButtons.length; i++) {
 			const taskbarButton = taskbarButtons[i];
-			if (taskbarButton === this.#taskbarButton) {
+			if (taskbarButton === myTaskbarButton) {
 				taskbarButton.classList.add('active');
 			} else {
 				taskbarButton.classList.remove('active');
 			}
 		}
-	}
+	});
 
-	close() {
-		const currentZIndex = parseInt(this.#element.style.zIndex || windows.length, 10);
+	windowElement.addEventListener('desktop-window-close', () => {
+		const currentZIndex = parseInt(windowElement.style.zIndex || windows.length, 10);
 
 		let myIndex;
 		for (let i = 0; i < windows.length; i++) {
 			const window = windows[i];
-			if (window === this.#element) {
+			if (window === windowElement) {
 				myIndex = i;
 			} else {
 				const windowZIndex = parseInt(window.style.zIndex || windows.length, 10);
@@ -78,7 +61,11 @@ export class Window {
 		}
 		windows.splice(myIndex, 1);
 
-		const taskbarButtonIndex = taskbarButtons.indexOf(this.#taskbarButton);
+		const taskbarButtonIndex = taskbarButtons.indexOf(myTaskbarButton);
 		taskbarButtons.splice(taskbarButtonIndex, 1);
-	}
+	});
+
+	windowElement.focus();
+
+	return windowElement;
 }

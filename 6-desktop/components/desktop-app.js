@@ -1,5 +1,5 @@
-import { registerComponent } from 'runtime';
-import { Window, windows, taskbarButtons } from '../windowmanager.js'
+import { registerComponent, element } from 'runtime';
+import { windows, taskbarButtons, launchWindow } from '../windowmanager.js'
 
 registerComponent('desktop-app', ({ render }) => {
 	render`
@@ -65,8 +65,22 @@ registerComponent('desktop-app', ({ render }) => {
 });
 
 function launchCalculator() {
-	new Window('🧮', 'Calc', '<calculator-app></calculator-app>');
+	const window = launchWindow(element`
+		<desktop-window>
+			<span slot="icon">🧮</span>
+			<span slot="title">Calc</span>
+			<calculator-app></calculator-app>
+		</desktop-window>
+	`);
+	window.style.width = 'auto';
+	window.style.aspectRatio = '400 / 387';
 }
 function launchNotepad() {
-	new Window('📝', 'Notepad', '<notepad-app></notepad-app>');
+	launchWindow(element`
+		<desktop-window>
+			<span slot="icon">📝</span>
+			<span slot="title">Notepad</span>
+			<notepad-app></notepad-app>
+		</desktop-window>
+	`);
 }
