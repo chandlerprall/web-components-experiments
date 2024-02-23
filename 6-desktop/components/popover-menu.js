@@ -29,7 +29,11 @@ registerComponent('popover-menu', ({ render, attributes, refs }) => {
 	isOpen.onUpdate(isOpen => {
 		if (isOpen) {
 			refs.content.classList.add('open');
-			refs.content.style.bottom = attributes.direction.value === 'up' ? '100%' : '0%';
+			if (attributes.direction?.value === 'up') {
+				refs.content.style.bottom = '100%';
+			} else {
+				refs.content.style.top = '100%';
+			}
 		} else {
 			refs.content.classList.remove('open');
 		}
@@ -55,7 +59,6 @@ registerComponent('popover-menu', ({ render, attributes, refs }) => {
 	display: none;
 	flex-direction: column;
 	position: absolute;
-	bottom: 100%;
 	left: 50%;
 	transform: translateX(-50%);
 	margin: 0;

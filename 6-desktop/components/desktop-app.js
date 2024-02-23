@@ -1,5 +1,6 @@
 import { registerComponent, element } from 'runtime';
 import { windows, taskbarButtons, launchWindow } from '../windowmanager.js'
+import { modals as fileModals } from '../filemanager.js';
 
 registerComponent('desktop-app', ({ render }) => {
 	render`
@@ -43,8 +44,21 @@ registerComponent('desktop-app', ({ render }) => {
 	}
 }
 
-#calculator {
-	top: 50px;
+#modals {
+  z-index: 1000;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  
+  &:not(:empty) {
+    background-color: color-mix(in srgb, var(--token-color-system) 80%, transparent);  
+  }
+  * {
+    pointer-events: all;
+  }
 }
 </style>
 
@@ -60,6 +74,7 @@ registerComponent('desktop-app', ({ render }) => {
 		</popover-menu>
 		${taskbarButtons}
 	</desktop-taskbar>
+	<section id="modals">${fileModals}</section>
 </main>
 	`;
 });
@@ -84,3 +99,5 @@ function launchNotepad() {
 		</desktop-window>
 	`);
 }
+
+launchNotepad();

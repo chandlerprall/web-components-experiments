@@ -32,7 +32,8 @@ registerComponent('desktop-window', ({ element, render }) => {
 	width: inherit;
   box-sizing: border-box;
   border: 1px solid var(--token-color-border);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 #titlebar {
@@ -53,6 +54,15 @@ registerComponent('desktop-window', ({ element, render }) => {
 	}
 }
 
+::slotted(menu) {
+	display: flex;
+	margin: 0;
+	padding: 0;
+	height: var(--desktop-window-menubar-height, 25px);
+	align-items: center;
+	background-color: var(--token-color-system);
+}
+
 #content {
 	background-color: var(--token-color-system);
 	height: calc(100% - var(--desktop-window-titlebar-height, 25px));
@@ -66,6 +76,7 @@ registerComponent('desktop-window', ({ element, render }) => {
 	</span>
 	<button id="close" onclick=${() => element.close()}>ⓧ</button>
 </div>
+<slot name="menu"></slot>
 <div id="content"><slot></slot></div>
 	`;
 }, class DesktopWindow extends HTMLElement {
