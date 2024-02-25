@@ -176,7 +176,7 @@ function processPart(part, attribute, hydrations) {
   } else if (Array.isArray(part)) {
     return part.map(part => processPart(part, attribute, hydrations)).join('');
   } else if (attribute) {
-    if (attribute != null && typeof attribute === 'object') {
+    if (part != null && typeof part === 'object') {
       const id = uniqueId();
       idToValueMap[id] = part;
       hydrations.push({type: 'attribute', attribute, part, id});
