@@ -1,7 +1,7 @@
 import { registerComponent } from 'runtime';
 import { openFileDialog, openSaveDialog } from '../filemanager.js';
 
-registerComponent('notepad-app', ({ render, refs }) => {
+registerComponent('notepad-app', ({ render, refs, attributes }) => {
 render`
 <style>
 :host {
@@ -37,4 +37,6 @@ textarea {
 	</popover-menu>
 </menu-bar>
 <textarea id="content"></textarea>`;
+
+refs.content.value = attributes.file?.value?.content || '';
 });

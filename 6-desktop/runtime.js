@@ -176,6 +176,12 @@ function processPart(part, attribute, hydrations) {
   } else if (Array.isArray(part)) {
     return part.map(part => processPart(part, attribute, hydrations)).join('');
   } else if (attribute) {
+    if (attribute != null && typeof attribute === 'object') {
+      const id = uniqueId();
+      idToValueMap[id] = part;
+      hydrations.push({type: 'attribute', attribute, part, id});
+      return `"${id}"`;
+    }
     return `"${part}"`;
   }
   return part;
@@ -208,7 +214,7 @@ function getAttributeForExpression(prevString) {
 }
 
 const ATTRIBUTE_MAP = Symbol('attribute map');
-const CREATED_ELEMENT = Symbol('created element');
+const definedElements = new Set();
 
 const idToValueMap = {};
 window.idToValueMap = idToValueMap;
@@ -233,7 +239,7 @@ const render = (strings = [''], ...rest) => {
       const { type } = hydration
       if (type === 'dom') {
         const { id, part } = hydration;
-        const dataNode = owningElement.shadowRoot.querySelector(`[id="${id}"]`);
+        const dataNode = (owningElement.shadowRoot ?? owningElement).querySelector(`[id="${id}"]`);
         part.connect(dataNode, { replace: true });
       } else if (type === 'element') {
         const { id, part } = hydration;
@@ -242,9 +248,9 @@ const render = (strings = [''], ...rest) => {
         dataNode.remove();
       } else if (type === 'attribute') {
         const { id, attribute, part } = hydration;
-        const element = owningElement.shadowRoot.querySelector(`[${attribute.name}="${id}"]`);
+        const element = (owningElement.shadowRoot ?? owningElement).querySelector(`[${attribute.name}="${id}"]`);
 
-        if (element[CREATED_ELEMENT]) {
+        if (definedElements.has(element.tagName.toLowerCase())) {
           // element came from us and already has the attribute set to the id
         } else {
           // we are in charge of managing the attribute value
@@ -286,6 +292,7 @@ export const element = (...args) => {
 }
 
 export function registerComponent(name, componentDefinition, BaseClass = HTMLElement) {
+  definedElements.add(name);
   const isComponentString = typeof componentDefinition === 'string';
   const isComponentFunction = componentDefinition instanceof Function;
 
@@ -300,8 +307,6 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
   template.innerHTML = html;
 
   const ComponentClass = class extends BaseClass {
-    [CREATED_ELEMENT] = true;
-
     #attributes = new Proxy(
       { [ATTRIBUTE_MAP]: new State(0) },
       {
@@ -349,7 +354,7 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
       });
       shadowRoot.appendChild(template.content.cloneNode(true));
 
-      queueMicrotask(this.#initialize.bind(this));
+      this.#initialize();
     }
 
     #attachAttribute(attributeName, value, oldValue) {
@@ -360,14 +365,18 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
       if (value?.match(/^_unique_id_\d+/)) {
         // @TODO: garbage collection (call offUpdate on component disconnectedCallback?)
         const data = idToValueMap[value];
-        data.onUpdate(nextValue => {
-          this.#attributes[attributeName] = nextValue;
-        });
-        this.#attributes[attributeName].onUpdate(nextValue => {
-          data.value = nextValue;
-        });
 
-        this.#attributes[attributeName].value = data.value;
+        if (data instanceof State) {
+          data.onUpdate(nextValue => {
+            this.#attributes[attributeName] = nextValue;
+          });
+          this.#attributes[attributeName].onUpdate(nextValue => {
+            data.value = nextValue;
+          });
+          this.#attributes[attributeName].value = data.value;
+        } else {
+          this.#attributes[attributeName].value = data;
+        }
       } else {
         this.#attributes[attributeName].value = value;
       }

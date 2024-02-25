@@ -16,7 +16,7 @@ registerComponent('desktop-taskbar', ({ render }) => {
 	border-top: 1px solid var(--token-color-border);
 }
 ::slotted(button) {
-  	padding: 0;
+  padding: 0;
 	margin: 0;
 	height: 100%;
 	min-height: inherit;

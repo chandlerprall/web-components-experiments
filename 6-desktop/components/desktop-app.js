@@ -69,8 +69,9 @@ registerComponent('desktop-app', ({ render }) => {
 		<popover-menu direction="up">
 			<button class="taskbarButton">❇️</button>
 			
-			<button slot="menu" onClick=${launchNotepad}>📝 Notepad</button>
+			<button slot="menu" onClick=${() => launchNotepad()}>📝 Notepad</button>
 			<button slot="menu" onClick=${launchCalculator}>🧮 Calculator</button>
+			<button slot="menu" onClick=${launchFiles}>🗂️ Files</button>
 		</popover-menu>
 		${taskbarButtons}
 	</desktop-taskbar>
@@ -79,7 +80,7 @@ registerComponent('desktop-app', ({ render }) => {
 	`;
 });
 
-function launchCalculator() {
+export function launchCalculator() {
 	const window = launchWindow(element`
 		<desktop-window>
 			<span slot="icon">🧮</span>
@@ -90,14 +91,22 @@ function launchCalculator() {
 	window.style.width = 'auto';
 	window.style.aspectRatio = '400 / 387';
 }
-function launchNotepad() {
+export function launchNotepad(file) {
 	launchWindow(element`
 		<desktop-window>
 			<span slot="icon">📝</span>
 			<span slot="title">Notepad</span>
-			<notepad-app></notepad-app>
+			<notepad-app file=${file}></notepad-app>
 		</desktop-window>
 	`);
 }
 
-launchNotepad();
+export function launchFiles() {
+	launchWindow(element`
+		<desktop-window>
+			<span slot="icon">🗂️</span>
+			<span slot="title">Files</span>
+			<files-app></files-app>
+		</desktop-window>
+	`);
+}
