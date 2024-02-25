@@ -1,9 +1,8 @@
 import { registerComponent, html, element } from 'runtime';
 import { LiveView, openFile } from '../filemanager.js';
 
-registerComponent('files-app', ({ render }) => {
-	const liveView = new LiveView('');
-	// @TODO: close liveView on unmount
+registerComponent('files-app', ({ render, element: me }) => {
+	const liveView = me.liveView = new LiveView('');
 
 	const crumbs = html``;
 	const directories = html``;
@@ -126,4 +125,8 @@ registerComponent('files-app', ({ render }) => {
 	${files}
 </section>
 	`;
+}, class FilesApp extends HTMLElement {
+	disconnectedCallback() {
+		this.liveView.close();
+	}
 });
