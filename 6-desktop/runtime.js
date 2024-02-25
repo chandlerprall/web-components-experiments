@@ -258,7 +258,11 @@ const render = (strings = [''], ...rest) => {
             if (element.tagName === 'INPUT' && attribute.name === 'value') {
               element.value = part.value;
             } else {
-              element.setAttribute(attribute.name, part.value);
+              if (part.value === false) {
+                element.removeAttribute(attribute.name);
+              } else {
+                element.setAttribute(attribute.name, part.value);
+              }
             }
           }
           part.onUpdate(updateAttribute);

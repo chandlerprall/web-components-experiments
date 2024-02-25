@@ -13,7 +13,7 @@ registerComponent('modal-dialog', ({ render, element }) => {
 	flex-direction: column;
 	padding: 10px;
 	background-color: var(--token-color-system);
-	border: 1px inset var(--token-color-border);
+	border: 1px outset var(--token-color-border);
 }
 
 #buttons {

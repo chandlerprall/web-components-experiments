@@ -6,6 +6,7 @@ import "./components/calculator-app.js";
 import "./components/files-app.js";
 import "./components/notepad-app.js";
 
+import "./components/file-explorer.js";
 import "./components/menu-bar.js";
 import "./components/modal-dialog.js";
 import "./components/popover-menu.js";

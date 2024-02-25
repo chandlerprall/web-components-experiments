@@ -11,3 +11,10 @@ Automatically create a `refs` object mapping IDs to the corresponding elements.
 ## Challenges to solve
 
 * Map/[array method] over a state array (directories/files)
+  * similar, passing `disabled=${!someState}`
+* If an attribute isn't set, there's no state value to subscribe to
+  * attribute states should be created on read (`file-explorer`'s filter)
+* false attributes need to be managed
+  * `<button disabled=${'false'}>...</button>`
+  * `<button disabled=${false}>...</button>`
+  * `<button disabled="false">...</button>`

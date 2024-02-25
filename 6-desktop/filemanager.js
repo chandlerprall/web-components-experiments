@@ -40,15 +40,15 @@ class Directory {
 	}
 }
 const root = new Directory('');
-const utils = root.addDirectory(new Directory('utils'));
-utils.addFile(new File("Calculator.app", null, '🧮'));
-utils.addFile(new File("Notepad.app", null, '📝'));
-utils.addFile(new File("Files.app", null, '🗂️'));
+const desktop = root.addDirectory(new Directory('desktop'));
+desktop.addFile(new File("Calculator.app", null, '🧮'));
+desktop.addFile(new File("Notepad.app", null, '📝'));
+desktop.addFile(new File("Files.app", null, '🗂️'));
 root.addFile(new File("README.txt", "This is a readme file"));
 
 export const modals = html();
 
-export const openFileDialog = () => {
+export const openFileDialog = ({ filter }) => {
 	return new Promise(resolve => {
 		const closeDialog = (result) => {
 			const dialogIdx = modals.indexOf(dialog);
@@ -56,21 +56,34 @@ export const openFileDialog = () => {
 			resolve(result);
 		}
 
+		const selectedFile = new State(null);
+		const isOpenDisabled = new State(true);
+		selectedFile.onUpdate(file => {
+			isOpenDisabled.value = !file;
+		});
+
 		const dialog = element`
 			<modal-dialog>
+				<style>
+					.filemanager-fileexplorer {
+						height: 200px;
+					}
+				</style>
 				<strong>Select file</strong>
 				
-				<select size="5">
-					<option>quick_brown_fox</option>
-					<option>Two</option>
-				</select>
-				
+				<file-explorer class="filemanager-fileexplorer" view="list" filter=${filter ?? ''}></file-explorer>
 				
 				<button slot="buttons" onclick=${() => closeDialog(null)}>Close</button>
-				<button slot="buttons" onclick=${() => closeDialog(dialog.querySelector('select').value)}>Open</button>
+				<button slot="buttons"
+					disabled=${isOpenDisabled}
+					onclick=${() => closeDialog(selectedFile.value)}
+				>Open</button>
 			</modal-dialog>
 		`;
 		dialog.style.width = '300px';
+		dialog.addEventListener('file-explorer-select-file', ({ detail: file }) => selectedFile.value = file);
+		dialog.addEventListener('file-explorer-dblclick-file', ({ detail: file }) => closeDialog(file));
+
 		modals.push(dialog);
 	});
 };
@@ -83,15 +96,48 @@ export const openSaveDialog = () => {
 			resolve(result);
 		}
 
+		const filename = new State('');
+		const isSaveDisabled = new State(true);
+		filename.onUpdate(filename => {
+			isSaveDisabled.value = !filename;
+		});
+
 		const dialog = element`
 			<modal-dialog>
+				<style>
+					.filemanager-fileexplorer {
+						height: 200px;
+					}
+					
+					.filemanager-filename {
+						border: 1px solid var(--token-color-border);
+						height: 1.5em;
+					}
+				</style>
 				<strong>Save file</strong>
 				
-				<button slot="buttons" onclick=${() => closeDialog(false)}>Cancel</button>
-				<button slot="buttons" onclick=${() => closeDialog(true)}>Save</button>
+				<file-explorer class="filemanager-fileexplorer" view="list"></file-explorer>
+				<input
+					class="filemanager-filename"
+					placeholder="filename"
+					value=${filename}
+					onkeyup=${e => {
+						filename.value = e.target.value;	
+					}}
+				/>
+				
+				<button slot="buttons" onclick=${() => closeDialog(null)}>Cancel</button>
+				<button slot="buttons" disabled=${isSaveDisabled} onclick=${() => {
+					closeDialog(`${dialog.querySelector('file-explorer').liveView.path}/${filename.value}`);	
+				}}>Save</button>
 			</modal-dialog>
 		`;
 		dialog.style.width = '300px';
+		dialog.addEventListener('file-explorer-select-file', ({ detail: file }) => {
+			if (file) {
+				filename.value = file.name
+			}
+		});
 		modals.push(dialog);
 	});
 };
@@ -140,11 +186,35 @@ export class LiveView {
 	}
 }
 
-export function openFile(file) {
+export function readFile(file) {
 	// mime types? Where we're going, we don't need mime types
 	if (file.name.endsWith('.txt')) {
 		Pad.launchNotepad(file);
 	} else if (file.name.endsWith('.app')) {
 		Pad[`launch${file.name.replace('.app', '')}`]();
+	}
+}
+
+export function writeFile(file, content) {
+	const parts = file.split('/');
+	parts.shift(); // remove root
+	const filename = parts.pop(); // remove filename
+	let directory = root;
+	for (const part of parts) {
+		if (part === '..') {
+			directory = directory.parent;
+		} else {
+			directory = directory.directories.find(d => d.name === part);
+		}
+	}
+
+	const existingFile = directory.files.find(f => f.name === filename);
+	if (existingFile) {
+		existingFile.content = content;
+	} else {
+		directory.addFile(new File(filename, content));
+		for (const view of liveViews) {
+			view.refresh();
+		}
 	}
 }
