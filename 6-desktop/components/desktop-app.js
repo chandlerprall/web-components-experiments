@@ -77,6 +77,7 @@ file-explorer {
 			<button slot="menu" onClick=${() => launchNotepad()}>📝 Notepad</button>
 			<button slot="menu" onClick=${() => launchCalculator()}>🧮 Calculator</button>
 			<button slot="menu" onClick=${() => launchFiles()}>🗂️ Files</button>
+			<button slot="menu" onClick=${() => launchSettings()}>⚙️ Settings</button>
 		</popover-menu>
 		${taskbarButtons}
 	</desktop-taskbar>
@@ -122,6 +123,16 @@ export function launchFiles(path = '/') {
 			<span slot="icon">🗂️</span>
 			<span slot="title">Files</span>
 			<files-app initialpath=${path}></files-app>
+		</desktop-window>
+	`);
+}
+
+export function launchSettings() {
+	launchWindow(element`
+		<desktop-window>
+			<span slot="icon">⚙️</span>
+			<span slot="title">Settings</span>
+			<settings-app></settings-app>
 		</desktop-window>
 	`);
 }

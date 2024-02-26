@@ -52,6 +52,7 @@ const desktop = root.addDirectory(new Directory('desktop'));
 desktop.addFile(new File("Calculator.app", null, '🧮'));
 desktop.addFile(new File("Notepad.app", null, '📝'));
 desktop.addFile(new File("Files.app", null, '🗂️'));
+desktop.addFile(new File("Settings.app", null, '⚙️'));
 root.addFile(new File("README.txt", "This is a readme file"));
 
 export const modals = html();
