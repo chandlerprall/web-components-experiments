@@ -64,19 +64,21 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 	render`
 <style>
 :host {
-	--breadcrumbs-height: 24px;
-	display: block;
-	height: inherit;
+	display: flex;
+	flex-direction: column;
+  height: 100%;
+  width: 100%;
 }
 
 #breadcrumbs {
-	height: var(--breadcrumbs-height);
+	flex-basis: var(--menubar-height, 25px);
 	background-color: var(--token-color-system);
 	display: flex;
 	justify-items: flex-start;
 	align-items: center;
 	
 	.crumb {
+		height: 100%;
 		border: 0;
 		background-color: var(--token-color-system);
 		
@@ -94,8 +96,8 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 
 #container {
 	display: flex;
-	height: calc(100% - var(--breadcrumbs-height));
 	flex-wrap: wrap;
+	flex-basis: 100%;
 	justify-content: flex-start;
 	align-content: flex-start;
 	background-color: var(--token-color-background);
@@ -177,7 +179,7 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 	display: none;
 }
 </style>
-<section id="breadcrumbs">${crumbs}</section>
+<menu-bar id="breadcrumbs">${crumbs}</menu-bar>
 <section id="container" class=${attributes.view ?? ''}>
 	${directories}
 	${files}

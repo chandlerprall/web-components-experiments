@@ -11,8 +11,7 @@ render`
   width: 100%;
 }
 textarea {
-  width: 100%;
-  height: 100%;
+  flex-basis: 100%;
   box-sizing: border-box;
   resize: none;
 }
