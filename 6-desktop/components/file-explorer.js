@@ -23,7 +23,11 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 				</button>
 			`);
 		}
-		for (const directory of liveView.directories.value) {
+
+		const sortedDirectories = [...liveView.directories.value].sort((a, b) => a.name.localeCompare(b.name));
+		const sortedFiles = [...liveView.files.value].sort((a, b) => a.name.localeCompare(b.name));
+
+		for (const directory of sortedDirectories) {
 			directories.push(element`
 				<button class="item directory" ondblclick=${() => {
 					const result = me.emit('dblclick-directory', directory);
@@ -36,7 +40,7 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 				</button>
 			`);
 		}
-		for (const file of liveView.files.value) {
+		for (const file of sortedFiles) {
 			const buttonElement = element`
 				<button
 					class="item file"
