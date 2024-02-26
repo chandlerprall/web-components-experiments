@@ -1,8 +1,8 @@
 import { registerComponent, html, element } from 'runtime';
-import { LiveView, readFile } from '../filemanager.js';
+import { LiveView, openFile } from '../filemanager.js';
 
 registerComponent('file-explorer', ({ render, element: me, attributes }) => {
-	const liveView = me.liveView = new LiveView(attributes.initialpath?.value || '');
+	const liveView = me.liveView = new LiveView(attributes.initialpath?.value || '/');
 
 	const crumbs = html``;
 	const directories = html``;
@@ -25,7 +25,12 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 		}
 		for (const directory of liveView.directories.value) {
 			directories.push(element`
-				<button class="item directory" ondblclick=${() => liveView.navigate(`${liveView.path}/${directory.name}`)}>
+				<button class="item directory" ondblclick=${() => {
+					const result = me.emit('dblclick-directory', directory);
+					if (result) {
+						liveView.navigate(`${liveView.path}/${directory.name}`)	
+					}
+				}}>
 					<span class="icon">📁</span>
 					<span class="name">${directory.name}</span>
 				</button>
@@ -60,6 +65,8 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 <style>
 :host {
 	--breadcrumbs-height: 24px;
+	display: block;
+	height: inherit;
 }
 
 #breadcrumbs {
@@ -159,6 +166,15 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 			}
 		}
 	}
+	
+	&.desktop {
+		border-width: 0;
+		background-color: transparent;
+	}
+}
+
+#breadcrumbs:has(+ #container.desktop) {
+	display: none;
 }
 </style>
 <section id="breadcrumbs">${crumbs}</section>

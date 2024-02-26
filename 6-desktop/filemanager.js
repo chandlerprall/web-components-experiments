@@ -38,6 +38,14 @@ class Directory {
 		this.files.push(file);
 		return file;
 	}
+
+	get path() {
+		if (this.parent) {
+			return `${this.parent.path}/${this.name}`;
+		} else {
+			return '';
+		}
+	}
 }
 const root = new Directory('');
 const desktop = root.addDirectory(new Directory('desktop'));
@@ -148,7 +156,7 @@ export class LiveView {
 	files = new State([]);
 
 	constructor(path) {
-		this.path = path;
+		this.path = path === '/' ? '' : path;
 		liveViews.push(this);
 		this.refresh();
 	}
@@ -186,7 +194,7 @@ export class LiveView {
 	}
 }
 
-export function readFile(file) {
+export function openFile(file) {
 	// mime types? Where we're going, we don't need mime types
 	if (file.name.endsWith('.txt')) {
 		Pad.launchNotepad(file);

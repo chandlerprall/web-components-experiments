@@ -16,6 +16,8 @@ export class ContainedNodeArray extends Array {
     } else {
       this.connectedElement.append(...this);
     }
+
+    // @TODO: watch for changes to `length`
   }
 
   disconnect() {
@@ -311,7 +313,7 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
   template.innerHTML = html;
 
   const ComponentClass = class extends BaseClass {
-    #attributes = new Proxy(
+    attributes = new Proxy(
       { [ATTRIBUTE_MAP]: new State(0) },
       {
         set: (target, key, value) => {
@@ -331,7 +333,7 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
       }
     );
 
-    #refs = {};
+    refs = {};
 
     constructor() {
       super();
@@ -362,8 +364,8 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
     }
 
     #attachAttribute(attributeName, value, oldValue) {
-      if (!this.#attributes.hasOwnProperty(attributeName)) {
-        this.#attributes[attributeName] = new State();
+      if (!this.attributes.hasOwnProperty(attributeName)) {
+        this.attributes[attributeName] = new State();
       }
 
       if (value?.match(/^_unique_id_\d+/)) {
@@ -372,17 +374,17 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
 
         if (data instanceof State) {
           data.onUpdate(nextValue => {
-            this.#attributes[attributeName] = nextValue;
+            this.attributes[attributeName] = nextValue;
           });
-          this.#attributes[attributeName].onUpdate(nextValue => {
+          this.attributes[attributeName].onUpdate(nextValue => {
             data.value = nextValue;
           });
-          this.#attributes[attributeName].value = data.value;
+          this.attributes[attributeName].value = data.value;
         } else {
-          this.#attributes[attributeName].value = data;
+          this.attributes[attributeName].value = data;
         }
       } else {
-        this.#attributes[attributeName].value = value;
+        this.attributes[attributeName].value = value;
       }
     }
 
@@ -409,20 +411,20 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
             for (let i = 0; i < elementsWithIds.length; i++) {
               const element = elementsWithIds[i];
               const id = element.id;
-              this.#refs[id] = element;
+              this.refs[id] = element;
             }
           },
-          refs: this.#refs,
-          attributes: this.#attributes,
+          refs: this.refs,
+          attributes: this.attributes,
         });
       }
     }
 
     emit(eventName, detail) {
-      this.dispatchEvent(new CustomEvent(`${name}-${eventName}`, {
+      return this.dispatchEvent(new CustomEvent(`${name}-${eventName}`, {
         composed: true,
         bubbles: true,
-        cancelable: false,
+        cancelable: true,
         detail,
       }));
     }

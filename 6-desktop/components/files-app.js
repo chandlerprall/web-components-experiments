@@ -1,11 +1,16 @@
 import { registerComponent } from 'runtime';
-import { readFile } from '../filemanager.js';
+import { openFile } from '../filemanager.js';
 
-registerComponent('files-app', ({ render, element }) => {
+registerComponent('files-app', ({ render, element, attributes }) => {
 
-element.addEventListener('file-explorer-dblclick-file', ({ detail: file }) => readFile(file));
+element.addEventListener('file-explorer-dblclick-file', ({ detail: file }) => openFile(file));
 
 render`
-<file-explorer></file-explorer>
+<style>
+file-explorer {
+	height: 100%;
+}
+</style>
+<file-explorer initialpath=${attributes?.initialpath || '/'}></file-explorer>
 	`;
 });

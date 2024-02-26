@@ -36,6 +36,13 @@ registerComponent('desktop-window', ({ element, render }) => {
   flex-direction: column;
 }
 
+dialog {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+}
+
 #titlebar {
   display: flex;
   align-items: center;
@@ -54,30 +61,22 @@ registerComponent('desktop-window', ({ element, render }) => {
 	}
 }
 
-::slotted(menu) {
-	display: flex;
-	margin: 0;
-	padding: 0;
-	height: var(--desktop-window-menubar-height, 25px);
-	align-items: center;
-	background-color: var(--token-color-system);
-}
-
 #content {
 	background-color: var(--token-color-system);
-	height: calc(100% - var(--desktop-window-titlebar-height, 25px));
+	height: calc(100% - 25px);
 }
 </style>
 
-<div id="titlebar" onMouseDown=${onTitleMouseDown}>
-	<span>
-		<slot name="icon"></slot>
-		<slot name="title"></slot>
-	</span>
-	<button id="close" onclick=${() => element.close()}>ⓧ</button>
-</div>
-<slot name="menu"></slot>
-<div id="content"><slot></slot></div>
+<dialog id="dialog" open>
+	<div id="titlebar" onMouseDown=${onTitleMouseDown}>
+		<span>
+			<slot name="icon"></slot>
+			<slot name="title"></slot>
+		</span>
+		<button id="close" onclick=${() => element.close()}>ⓧ</button>
+	</div>
+	<div id="content"><slot></slot></div>
+</dialog>
 	`;
 }, class DesktopWindow extends HTMLElement {
 	focus() {

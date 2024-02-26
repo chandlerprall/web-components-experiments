@@ -19,11 +19,8 @@ registerComponent('menu-bar', ({ render }) => {
 }
 
 ::slotted(popover-menu) {
-height: 100%;
-}
-popover-menu {
 	height: 100%;
-};
+}
 </style>
 
 <slot></slot>

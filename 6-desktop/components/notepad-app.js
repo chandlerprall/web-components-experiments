@@ -5,13 +5,20 @@ registerComponent('notepad-app', ({ render, refs, attributes }) => {
 render`
 <style>
 :host {
-  height: inherit;
-  width: inherit;
-}
-textarea {
+	display: flex;
+	flex-direction: column;
   height: 100%;
   width: 100%;
+}
+textarea {
+  width: 100%;
+  height: 100%;
   box-sizing: border-box;
+  resize: none;
+}
+
+menu-bar {
+	flex-basis: var(--menubar-height, 25px);
 }
 
 .menuButton {
@@ -35,12 +42,14 @@ textarea {
 		}}>Open</button>
 		<button slot="menu" onclick=${() => {
 			openSaveDialog().then(filepath => {
-				writeFile(filepath.endsWith('.txt') ? filepath : `${filepath}.txt`, refs.content.value);
+				if (filepath) {
+					writeFile(filepath.endsWith('.txt') ? filepath : `${filepath}.txt`, refs.content.value);	
+				}
 			})
 		}}>Save</button>
 	</popover-menu>
 </menu-bar>
-<textarea id="content"></textarea>`;
+<textarea id="content" autofocus></textarea>`;
 
 refs.content.value = attributes.file?.value?.content || '';
 });
