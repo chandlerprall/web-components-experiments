@@ -8,6 +8,8 @@ Added `element` tagged template literal to easily create an element with the sam
 
 Automatically create a `refs` object mapping IDs to the corresponding elements.
 
+Better event handling, including support for custom events. Handlers no longer pollute the global scope
+
 ## Challenges to solve
 
 * Map/[array method] over a state array (directories/files)

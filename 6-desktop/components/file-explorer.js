@@ -18,7 +18,7 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 		const path = liveView.path.split('/');
 		for (const part of path) {
 			crumbs.push(element`
-				<button class="crumb" onclick=${() => liveView.navigate(path.slice(0, path.indexOf(part) + 1).join('/'))}>
+				<button class="crumb" onClick=${() => liveView.navigate(path.slice(0, path.indexOf(part) + 1).join('/'))}>
 					${part || '/'}
 				</button>
 			`);
@@ -29,7 +29,7 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 
 		for (const directory of sortedDirectories) {
 			directories.push(element`
-				<button class="item directory" ondblclick=${() => {
+				<button class="item directory" onDblclick=${() => {
 					const result = me.emit('dblclick-directory', directory);
 					if (result) {
 						liveView.navigate(`${liveView.path}/${directory.name}`)	
@@ -44,11 +44,11 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 			const buttonElement = element`
 				<button
 					class="item file"
-					onclick=${(e) => {
+					onClick=${(e) => {
 						e.stopImmediatePropagation();
 						me.emit('select-file', file)
 					}}
-					ondblclick=${() => me.emit('dblclick-file', file)}
+					onDblclick=${() => me.emit('dblclick-file', file)}
 				>
 					<span class="icon">${file.icon}</span>
 					<span class="name">${file.name}</span>

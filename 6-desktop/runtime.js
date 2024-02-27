@@ -165,8 +165,10 @@ function processPart(part, attribute, hydrations) {
     return `<data id="${id}"></data>`;
   } else if (part instanceof Function) {
     const id = uniqueId();
-    globalThis[id] = part;
-    return attribute?.type === 'handler' ? `${id}(...arguments)` : id;
+    if (attribute?.type === 'handler') {
+      hydrations.push({ type: 'handler', part, id, eventName: attribute.name });
+    }
+    return `"${id}"`;
   } else if (part instanceof ComponentDefinition) {
     hydrations.push(part.hydrate);
     part = part.html;
@@ -281,6 +283,13 @@ const render = (strings = [''], ...rest) => {
         };
         updateAttributes();
         publisher.onUpdate(() => updateAttributes());
+      } else if (type === 'handler') {
+        const { id, eventName, part } = hydration;
+        // @TODO: fallback to owningElement to handle when handler is on the top-level node from element``, this means we're not 100% tied to the IDs
+        // likely an issue with above hydrations targeting the top-level on element``
+        const targetElement = (owningElement.shadowRoot ?? owningElement).querySelector(`[${eventName}="${id}"]`) ?? owningElement;
+        targetElement.removeAttribute(eventName);
+        targetElement.addEventListener(eventName.replace(/^on/, '').toLowerCase(), part);
       }
     }
   };

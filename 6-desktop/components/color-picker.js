@@ -118,7 +118,7 @@ registerComponent('color-picker', ({ render, refs, attributes, element }) => {
 </style>
 
 <div class="colorpicker">
-  <section id="colorBg" class="colorBox" onclick=${getValuesFromClickEvent}>
+  <section id="colorBg" class="colorBox" onClick=${getValuesFromClickEvent}>
     <div class="saturationBg"></div>
     <div class="lightnessBg"></div>
     <div id="colorIndicator"></div>

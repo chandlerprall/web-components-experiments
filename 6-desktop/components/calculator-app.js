@@ -120,18 +120,18 @@ button {
   <div class="digits">
     ${
 	[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map(
-		(digit) => createElement`<button onclick=${() => element.emit("digit", digit.toString())}>${digit}</button>`
+		(digit) => createElement`<button onClick=${() => element.emit("digit", digit.toString())}>${digit}</button>`
 	)
 }
-    <button onclick=${() => element.emit("dot")}>.</button>
-    <button onclick=${() => element.emit("back")}>🔙</button>
+    <button onClick=${() => element.emit("dot")}>.</button>
+    <button onClick=${() => element.emit("back")}>🔙</button>
   </div>
 
   <div class="operations">
-    <button onclick=${() => element.emit("operator", "+")}>+</button>
-    <button onclick=${() => element.emit("operator", "-")}>-</button>
-    <button onclick=${() => element.emit("operator", "*")}>*</button>
-    <button onclick=${() => element.emit("operator", "/")}>/</button>
+    <button onClick=${() => element.emit("operator", "+")}>+</button>
+    <button onClick=${() => element.emit("operator", "-")}>-</button>
+    <button onClick=${() => element.emit("operator", "*")}>*</button>
+    <button onClick=${() => element.emit("operator", "/")}>/</button>
   </div>
 </section>
 	`;

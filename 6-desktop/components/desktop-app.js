@@ -68,7 +68,16 @@ file-explorer {
 </style>
 
 <main id="desktop">
-	<file-explorer id="desktopFiles" view="desktop" initialpath="/desktop"></file-explorer>
+	<file-explorer
+		id="desktopFiles"
+		view="desktop"
+		initialpath="/desktop"
+		onfile-explorer-dblclick-file=${({ detail: file }) => openFile(file)}
+		onfile-explorer-dblclick-directory=${(e) => {
+			e.preventDefault();
+			launchFiles(e.detail.path);
+		}}
+	></file-explorer>
 	<section id="windows">${windows}</section>
 	<desktop-taskbar id="taskbar">
 		<popover-menu direction="up">
@@ -84,16 +93,6 @@ file-explorer {
 	<section id="modals">${fileModals}</section>
 </main>
 	`;
-
-	refs.desktopFiles.addEventListener('file-explorer-dblclick-file', ({ detail: file }) => openFile(file));
-	refs.desktopFiles.addEventListener(
-		'file-explorer-dblclick-directory',
-		(e) => {
-			e.preventDefault();
-			launchFiles(e.detail.path);
-		},
-		true
-	);
 });
 
 export function launchCalculator() {

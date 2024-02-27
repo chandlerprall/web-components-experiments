@@ -86,9 +86,9 @@ menu ::slotted(button:active) {
 }
 </style>
 
-<section class="popover-menu" onmouseleave=${onMouseLeave} onmouseenter=${onMouseEnter}>
-	<div id="anchor" onclick=${onAnchorClick}><slot></slot></div>
-	<menu id="content" onclick=${onMenuClick}><slot name="menu"></slot></menu>
+<section class="popover-menu" onMouseLeave=${onMouseLeave} onMouseEnter=${onMouseEnter}>
+	<div id="anchor" onClick=${onAnchorClick}><slot></slot></div>
+	<menu id="content" onClick=${onMenuClick}><slot name="menu"></slot></menu>
 </section>
 `;
 });

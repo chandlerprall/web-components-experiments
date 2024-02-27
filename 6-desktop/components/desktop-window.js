@@ -73,7 +73,7 @@ dialog {
 			<slot name="icon"></slot>
 			<slot name="title"></slot>
 		</span>
-		<button id="close" onclick=${() => element.close()}>ⓧ</button>
+		<button id="close" onClick=${() => element.close()}>ⓧ</button>
 	</div>
 	<div id="content"><slot></slot></div>
 </dialog>

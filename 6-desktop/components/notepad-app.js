@@ -34,12 +34,12 @@ menu-bar {
 	<popover-menu>
 		<button class="menuButton">File</button>
 		
-		<button slot="menu" onclick=${() => refs.content.value = ''}>New</button>
-		<button slot="menu" onclick=${async () => {
+		<button slot="menu" onClick=${() => refs.content.value = ''}>New</button>
+		<button slot="menu" onClick=${async () => {
 			const file = await openFileDialog({ filter: '.txt' });
 			if (file) refs.content.value = file.content;
 		}}>Open</button>
-		<button slot="menu" onclick=${() => {
+		<button slot="menu" onClick=${() => {
 			openSaveDialog().then(filepath => {
 				if (filepath) {
 					writeFile(filepath.endsWith('.txt') ? filepath : `${filepath}.txt`, refs.content.value);	
@@ -48,7 +48,9 @@ menu-bar {
 		}}>Save</button>
 	</popover-menu>
 </menu-bar>
-<textarea id="content" autofocus></textarea>`;
+<textarea id="content"></textarea>`;
 
 refs.content.value = attributes.file?.value?.content || '';
+
+globalThis.queueMicrotask(() => refs.content.focus());
 });

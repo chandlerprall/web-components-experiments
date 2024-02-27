@@ -54,7 +54,7 @@ registerComponent('settings-app', ({ render, refs }) => {
   width: 300px;
   align-content: flex-start;
   
-  background-color: color-mix(in srgb, var(--token-color-system) 95%, #000);
+  background-color: var(--token-color-background);
   padding-top: 25px;
   box-sizing: border-box;
   
@@ -95,26 +95,28 @@ registerComponent('settings-app', ({ render, refs }) => {
   display: flex;
   justify-content: center;
   padding-top: 15px;
+  /*background-color: color-mix(in srgb, var(--token-color-background) 95%, #000);*/
+  background-color: var(--token-color-background);
 }
 </style>
 
 <div id="swatches">
-	<button id="background" onclick=${() => selectedColor.value = 'background'}>
+	<button id="background" onClick=${() => selectedColor.value = 'background'}>
 		<span class="swatch"></span>
 		<span>background</span>
 	</button>
 	
-	<button id="highlight" onclick=${() => selectedColor.value = 'highlight'}>
+	<button id="highlight" onClick=${() => selectedColor.value = 'highlight'}>
 		<span class="swatch"></span>
 		<span>highlight</span>
 	</button>
 	
-	<button id="system" onclick=${() => selectedColor.value = 'system'}>
+	<button id="system" onClick=${() => selectedColor.value = 'system'}>
 		<span class="swatch"></span>
 		<span>system</span>
 	</button>
 	
-	<button id="border" onclick=${() => selectedColor.value = 'border'}>
+	<button id="border" onClick=${() => selectedColor.value = 'border'}>
 		<span class="swatch"></span>
 		<span>border</span>
 	</button>
