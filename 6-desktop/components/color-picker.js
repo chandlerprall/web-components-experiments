@@ -124,9 +124,9 @@ registerComponent('color-picker', ({ render, refs, attributes, element }) => {
     <div id="colorIndicator"></div>
   </section>
   <section class="values">
-    <input type="range" min="0" max="360" class="hueSlider" value=${hue} onchange=${(e) => updateHue(parseFloat(e.target.value))} />
-    <input type="range" min="0" max="100" class="saturationSlider" value=${saturation} onchange=${(e) => updateSaturation(parseFloat(e.target.value))} />
-    <input type="range" min="0" max="100" class="lightnessSlider" value=${lightness} onchange=${(e) => updateLightness(parseFloat(e.target.value))} />
+    <input type="range" min="0" max="360" class="hueSlider" value=${hue} onChange=${(e) => updateHue(parseFloat(e.target.value))} />
+    <input type="range" min="0" max="100" class="saturationSlider" value=${saturation} onChange=${(e) => updateSaturation(parseFloat(e.target.value))} />
+    <input type="range" min="0" max="100" class="lightnessSlider" value=${lightness} onChange=${(e) => updateLightness(parseFloat(e.target.value))} />
   </section>
   <section id="result">
     (${hue}, ${saturation}%, ${lightness}%)

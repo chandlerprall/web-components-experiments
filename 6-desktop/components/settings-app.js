@@ -1,4 +1,4 @@
-import { registerComponent, State } from 'runtime';
+import { registerComponent, State, element } from 'runtime';
 
 const background = new State('#ffffff');
 const highlight = new State('#a9c2ea');
@@ -26,14 +26,6 @@ registerComponent('settings-app', ({ render, refs }) => {
 		state.onUpdate(newColor => {
 			refs[setting].style.color = newColor;
 			document.body.style.setProperty(settingtoPropertyMap[setting], newColor);
-		});
-	});
-
-	selectedColor.onUpdate((setting) => {
-		const currentHex = settingsMap[setting].value;
-		refs.picker.innerHTML = `<color-picker initialvalue="${currentHex}"></color-picker>`;
-		refs.picker.children[0].addEventListener('color-picker-color', ({ detail }) => {
-			settingsMap[setting].value = detail;
 		});
 	});
 
@@ -95,7 +87,6 @@ registerComponent('settings-app', ({ render, refs }) => {
   display: flex;
   justify-content: center;
   padding-top: 15px;
-  /*background-color: color-mix(in srgb, var(--token-color-background) 95%, #000);*/
   background-color: var(--token-color-background);
 }
 </style>
@@ -122,7 +113,17 @@ registerComponent('settings-app', ({ render, refs }) => {
 	</button>
 </div>
 
-<div id="picker"></div>
+<div id="picker">${selectedColor.as(selectedColor => {
+		if (!selectedColor) return '';
+		const currentHex = settingsMap[selectedColor];
+		return element`
+			<color-picker
+				initialvalue=${currentHex}
+				oncolor-picker-color=${({ detail }) => {
+					currentHex.value = detail;
+				}}
+			></color-picker>`;
+	})}</div>
 	`;
 
 	refs.background.style.color = background.value;

@@ -10,6 +10,8 @@ Automatically create a `refs` object mapping IDs to the corresponding elements.
 
 Better event handling, including support for custom events. Handlers no longer pollute the global scope
 
+Introduced `State::as` to map state values without losing reactivity
+
 ## Challenges to solve
 
 * Map/[array method] over a state array (directories/files)
@@ -24,3 +26,4 @@ Better event handling, including support for custom events. Handlers no longer p
   * `<button disabled=${false}>...</button>`
   * `<button disabled="false">...</button>`
 * `registerComponent`'s class extending is backwards
+* `element<div id="${value}"></div>` isn't handled an attribute 

@@ -75,8 +75,12 @@ export class State {
 
   constructor(value, asElement = "span") {
     this.#value = value;
-    this.#element = document.createElement(asElement);
-    this.#element.innerText = value;
+    if (this.isValueElement) {
+      this.#element = this.#value;
+    } else {
+      this.#element = document.createElement(asElement);
+      this.#element.innerText = value;
+    }
 
     Object.defineProperty(this, 'value', {
       get: () => this.#value,
@@ -84,8 +88,18 @@ export class State {
         if (this.#isUpdating) return;
         this.#isUpdating = true;
 
+        const oldValue = this.#value;
+        const oldElement = this.#element;
         this.#value = newValue;
-        this.#element.innerText = newValue;
+
+        if (this.isValueElement) {
+          this.#element = newValue;
+          oldElement.insertAdjacentElement('afterend', newValue);
+          oldElement.remove();
+        } else {
+          this.#element.innerText = newValue;
+        }
+
 
         for (let i = 0; i < this.#listeners.length; i++) {
           this.#listeners[i](newValue);
@@ -96,12 +110,26 @@ export class State {
     });
   }
 
+  get isValueElement() {
+    return this.#value instanceof HTMLElement;
+  }
+
   onUpdate(callback) {
     this.#listeners.push(callback);
   }
 
   offUpdate(callback) {
     this.#listeners = this.#listeners.filter(listener => listener !== callback);
+  }
+
+  as(callback) {
+    const holder = new State(callback(this.#value));
+    // @TODO: how to garbage collect this?
+    this.onUpdate(nextValue => {
+      const result = callback(nextValue);
+      holder.value = result;
+    })
+    return holder;
   }
 
   connect(element, { replace } = {}) {
@@ -239,20 +267,22 @@ const render = (strings = [''], ...rest) => {
 
   const html = lines.join('\n');
   const hydrate = (owningElement) => {
+    // @TODO: the fallbacks to owningElement to handle when handler is on the top-level node from element``,
+    //  this means we're not 100% tied to the IDs
     for (const hydration of hydrations) {
       const { type } = hydration
       if (type === 'dom') {
         const { id, part } = hydration;
-        const dataNode = (owningElement.shadowRoot ?? owningElement).querySelector(`[id="${id}"]`);
+        const dataNode = (owningElement.shadowRoot ?? owningElement).querySelector(`[id="${id}"]`) ?? owningElement;
         part.connect(dataNode, { replace: true });
       } else if (type === 'element') {
         const { id, part } = hydration;
-        const dataNode = (owningElement.shadowRoot ?? owningElement).querySelector(`[id="${id}"]`);
+        const dataNode = (owningElement.shadowRoot ?? owningElement).querySelector(`[id="${id}"]`) ?? owningElement;
         dataNode.before(part);
         dataNode.remove();
       } else if (type === 'attribute') {
         const { id, attribute, part } = hydration;
-        const element = (owningElement.shadowRoot ?? owningElement).querySelector(`[${attribute.name}="${id}"]`);
+        const element = (owningElement.shadowRoot ?? owningElement).querySelector(`[${attribute.name}="${id}"]`) ?? owningElement;
 
         if (definedElements.has(element.tagName.toLowerCase())) {
           // element came from us and already has the attribute set to the id
@@ -277,7 +307,7 @@ const render = (strings = [''], ...rest) => {
         const { part: { [ATTRIBUTE_MAP]: publisher, ...part }, id } = hydration;
         const updateAttributes = () => {
           for (const attributeName in part) {
-            const targetElement = owningElement.shadowRoot.querySelector(`[data-attribute-map="${id}"]`);
+            const targetElement = owningElement.shadowRoot.querySelector(`[data-attribute-map="${id}"]`) ?? owningElement;
             targetElement.setAttribute(attributeName, part[attributeName].value);
           }
         };
@@ -285,8 +315,6 @@ const render = (strings = [''], ...rest) => {
         publisher.onUpdate(() => updateAttributes());
       } else if (type === 'handler') {
         const { id, eventName, part } = hydration;
-        // @TODO: fallback to owningElement to handle when handler is on the top-level node from element``, this means we're not 100% tied to the IDs
-        // likely an issue with above hydrations targeting the top-level on element``
         const targetElement = (owningElement.shadowRoot ?? owningElement).querySelector(`[${eventName}="${id}"]`) ?? owningElement;
         targetElement.removeAttribute(eventName);
         targetElement.addEventListener(eventName.replace(/^on/, '').toLowerCase(), part);
