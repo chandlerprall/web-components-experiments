@@ -26,4 +26,5 @@ Introduced `State::as` to map state values without losing reactivity
   * `<button disabled=${false}>...</button>`
   * `<button disabled="false">...</button>`
 * `registerComponent`'s class extending is backwards
-* `element<div id="${value}"></div>` isn't handled an attribute 
+* `element<div id="${value}"></div>` isn't handled an attribute
+* State does not handle many of the render cases (e.g. mapping an array of elements)
