@@ -1,3 +1,53 @@
+export class ConnectedNode {
+  connectedElement = null;
+
+  #value = undefined;
+  #isReplaced = undefined;
+
+  constructor(value) {
+    this.#value = value;
+  }
+
+  set value(newValue) {
+    this.#value = newValue;
+    this.#inject();
+  }
+
+  #inject() {
+    if (this.connectedElement == null) return;
+
+    const originallyConnectedElement = this.connectedElement;
+
+    if (this.#isReplaced) {
+      originallyConnectedElement.after(this.#value);
+      originallyConnectedElement.remove();
+    } else {
+      originallyConnectedElement.append(this.#value);
+    }
+  }
+
+  connect(targetElement, { replace } = {}) {
+    this.disconnect();
+
+    this.connectedElement = targetElement;
+    this.#isReplaced = replace ?? false;
+    this.#inject();
+  }
+
+  disconnect() {
+    if (this.connectedElement) {
+      if (this.#isReplaced) {
+        // create and insert an empty placeholder node
+      } else {
+        this.connectedElement.remove();
+      }
+
+      this.connectedElement = null;
+      this.#isReplaced = undefined;
+    }
+  }
+}
+
 export class ContainedNodeArray extends Array {
   connectedElement = null;
 
@@ -158,7 +208,7 @@ export class State {
   }
 }
 
-const domParser = new DOMParser();
+const domParser = new window.DOMParser();
 export const html = (...args) => {
   const { html, hydrate } = render(...args);
   const document = domParser.parseFromString(html, 'text/html');

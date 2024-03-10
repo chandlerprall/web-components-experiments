@@ -1,0 +1,12 @@
+{
+  "name": "web-components-experiments",
+  "version": "0.0.0",
+  "description": "Exploratory component based architecture using web components",
+  "author": "chandler.prall@gmail.com",
+  "license": "OSL-3.0",
+  "type": "module",
+  "devDependencies": {
+    "chai": "^5.1.0",
+    "jsdom-global": "^3.0.2"
+  }
+}
