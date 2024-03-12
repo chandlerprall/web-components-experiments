@@ -14,6 +14,8 @@ A component's `attributes` object now auto-populates a value when accessed.
 
 Introduced `State::as` to map state values without losing reactivity
 
+Introduced `State::with` to map multiple state values without losing reactivity
+
 Introduced `ConnectedNode` to better manage value rendering into DOM locations.
 
 ## Challenges to solve

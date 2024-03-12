@@ -2,7 +2,7 @@ import { registerComponent, element } from 'runtime';
 import { windows, taskbarButtons, launchWindow } from '../windowmanager.js'
 import { modals as fileModals, openFile } from '../filemanager.js';
 
-registerComponent('desktop-app', ({ render }) => {
+registerComponent('desktop-app', ({ render, attributes, refs }) => {
   render`
 <style>
 #desktop {

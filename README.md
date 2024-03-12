@@ -1,98 +1,102 @@
 Exploratory component based architecture using web components
 
-### To explore
-
-#### `renderable`
-
-Right now there is code in place that handles mounting/rendering/updating `DataConnection` and to a much smaller extent, `ContainedNodeArray`. This is a bit of a mess and should be cleaned up, likely finding a `renderable` abstraction that both can opt into.
-
-#### easier state
-
-`DataConnection` tried to be a bit too magical and should be easier to reason about. It's unclear when you need to interact with its `value` property and if you do so in the wrong place it breaks the reactivity.
-
 #### customized built-in elements
 
 Currently only autonomous custom elements are supported, but this prevents doing things like extending `HTMLInputElement` with custom functionality.
 
-## How to use
+## Usage
 
-- load `runtime.js` (from `5-login` for latest)
-- call `loadComponents('my-app', 'todo-item', 'todo-list');` with each of your component names
+### Creating elements
 
-> [!NOTE]  
-> For DX, a lot of capability has been added to the HTML environment and can be used to build interactions instead of adding to the class definition itself.
->
-> The JS file should be used to define additional functionality or heavy lifting for the component to use, and to define any API another component could interact with.
+Browser DOM APIs are powerful but overly often too verbose to understand at a glance. This library provides an `element` tagged template literal to make creating DOM much easier.
 
-### Definining a component
-
-A component can be comprised from three files: HTML, CSS, and JS. Only the HTML file is required. Calling `loadComponents` automatically loads any existing files for each component.
-
-Let's build `<my-component>`
-
-#### HTML
-
-```html
-<div class="myComponent"></div>
+```javascript
+import { element, State } from './6-desktop/runtime.js';
+const counter = new State(0);
+const app = element`
+  <div>
+    <button onclick=${() => counter.value += 1}>increment</button>
+    <button onclick=${() => counter.value = 0}>reset</button>
+    <span>${counter}</span>
+  </div>
+`;
+document.body.appendChild(app);
 ```
 
-The HTML file can also start with a `<script>` tag which will be executed in a special context whenever the component is instanced. This method is comparable to React function components.
+### Declaring web components
 
-The context is provided these values:
+Components are defined by importing and calling `registerComponent`. The callback method receives some special values:
 
-| Variable     | Description                                                                            |
-| ------------ | -------------------------------------------------------------------------------------- |
-| `this`       | the component instance                                                                 |
-| `attributes` | an object exposing any attributes passed into the component                            |
-| `render`     | tagged template literal that takes augmented HTML and renders it as the component body |
+* `render` - a tagged template literal that takes augmented HTML and renders it as the component body
+* `attributes` - an object exposing any attributes passed into the component, supports destructuring & forwarding
+* `refs` - an object of references to elements with an id in the component body
+* `element` - the instance of the component
 
-The augmented HTML format allows callbacks, DOM output, and attributes to be specified as expressions. The following example is a button with a value that increases when clicked:
-
-```html
-<script>
-	const count = new DataConnection(0);
-	const increment = () => (count.value += 1);
-	render`<button type=${attributes.type} onclick=${increment}>${count}</button>`;
-</script>
+```javascript
+import { registerComponent } from './6-desktop/runtime.js';
+registerComponent('my-component', ({ render, attributes, refs }) => {
+  const { type, ...rest } = attributes;
+  render`
+    <style>
+    /* styles only affect DOM from this component */
+    input { /* ... */ }
+    </style>
+    <div id="container" ${rest}>
+      <input id="input" type=${attributes.type} />
+      <button onclick=${() => refs.input.value = ''}>clear</button>
+    </div>
+  `;
+});
 ```
 
-Callbacks can also be passed inline:
+### State
 
-```html
-<script>
-	const count = new DataConnection(0);
-	render`<button type=${attributes.type} onclick=${() => (count.value += 1)}>${count}</button>`;
-</script>
+Local component state is stored in `State` objects. These are subscribable values that can be read and written to, and can be passed directly into parts of the DOM string.
+
+```javascript
+import { State } from './6-desktop/runtime.js';
+registerComponent('value-incrementer', ({ render }) => {
+  // declare a local state value
+  const counter = new State({ count: 0 });
+  
+  // render the value in the DOM and also pass it to a hidden input's value 
+  render`
+    <div>
+      <button onclick=${() => counter.value += 1}>increment</button>
+      <span>${counter}</span>
+      <input type="hidden" value=${counter} />
+    </div>
+  `;
+  
+  // respond to state changes if needed
+  counter.onUpdate(value => console.log(`counter is now ${value}`));
+});
 ```
 
-#### CSS
+### Sharing state
 
-```css
-.myComponent {
-	/* styles */
-}
-```
+State objects can be declared outside of a component definition and consumed in the same way,
 
-#### JS
+```javascript
+import { State } from './6-desktop/runtime.js';
 
-> [!IMPORTANT]  
-> **if present, this file is responsible for calling `customElements.define`, otherwise `loadComponents` handles the definition**
+// declare a state value that all value-incrementer components will share
+// alternatively, this could be defined in a separate file and imported
+const counter = new State({ count: 0 });
 
-`loadComponents` creates a base class you can extend, named `Base${ComponentName}Element`. This class provides the component runtime functionality
-
-In fitting with standard web component usage, attributes you want to observe should be defined in a static `observedAttributes` array.
-
-```js
-customElements.define(
-	"my-component",
-	class MyComponent extends BaseMyComponentElement {
-		static observedAttributes = ["value", "type", "placeholder"];
-
-		constructor() {
-			super();
-		}
-	}
-);
+registerComponent('value-incrementer', ({ render }) => {
+  // render the value in the DOM and also pass it to a hidden input's value 
+  render`
+    <div>
+      <button onclick=${() => counter.value += 1}>increment</button>
+      <span>${counter}</span>
+      <input type="hidden" value=${counter} />
+    </div>
+  `;
+  
+  // respond to state changes if needed
+  counter.onUpdate(value => console.log(`counter is now ${value}`));
+});
 ```
 
 ### Events
@@ -109,13 +113,11 @@ Events can be emitted by calling `this.emit(event_name, event_value)` from eithe
   - `html` trims whitespace at the beginning and end of lines
   - component html has leading & trailing whitespace removed from each line
 - `ContainedNodeArray` manages an array of nodes without a wrapping element
-- `DataConnection` a subscribable state value
-- incoming attributes are mapped to an internal `DataConnection` instance
+- `State` a subscribable state value
+- `ConnectedNode` created to manage rendering and updating one or more values to a DOM location
+- incoming attributes are mapped to an internal `State` instance
   - provides consistent way to interact with attributes: always a subscribable value
   - all state, including attributes, is writable; currently this allows setting an attribute from the consuming component, effectively providing two-way binding
-- component class code goes in JS file
-- component instance code goes in HTML file
-  - `script` tags added via `innerHTML` are not executed, allowing for a safe way to include JS in the HTML file without it being executed globally, instead later called by the runtime with component context
 
 ## Iterations
 
@@ -153,6 +155,15 @@ Explores how attributes with primitive values can be provided. Further validatio
 
 Continuing the exploration of attributes, this added the ability to pass values (including non-primitives) between components.
 
-```
+### 6-desktop
 
-```
+![screenshot of desktop app](./images/screenshot-desktop.png)
+
+Fully fledged project to re-evaluate the architecture and patterns that have emerged, with a strong focus on DX.
+
+* Moved runtime into an importable module instead of global script.
+* Added `element` tagged template literal to easily create an element with the same syntax as `render`.
+* Components get a `refs` object automatically mapping IDs to the corresponding elements.
+* Better event handling, including support for custom events. Handlers no longer pollute the global scope
+* Improved state value usage with `as` and `with` methods
+* Introduced `ConnectedNode` to properly manage value rendering into DOM locations.
