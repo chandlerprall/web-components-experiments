@@ -4,48 +4,48 @@ import * as Pad from './components/desktop-app.js';
 const liveViews = [];
 
 class File {
-	name = null;
-	directory = null;
-	content = null;
-	icon = null;
+  name = null;
+  directory = null;
+  content = null;
+  icon = null;
 
-	constructor(name, content, icon = '📄') {
-		this.name = name;
-		this.content = content;
-		this.icon = icon;
-	}
+  constructor(name, content, icon = '📄') {
+    this.name = name;
+    this.content = content;
+    this.icon = icon;
+  }
 }
 
 class Directory {
-	name = null;
-	parent = null;
+  name = null;
+  parent = null;
 
-	directories = [];
-	files = [];
+  directories = [];
+  files = [];
 
-	constructor(name) {
-		this.name = name;
-	}
+  constructor(name) {
+    this.name = name;
+  }
 
-	addDirectory(directory) {
-		directory.parent = this;
-		this.directories.push(directory);
-		return directory;
-	}
+  addDirectory(directory) {
+    directory.parent = this;
+    this.directories.push(directory);
+    return directory;
+  }
 
-	addFile(file) {
-		file.directory = this;
-		this.files.push(file);
-		return file;
-	}
+  addFile(file) {
+    file.directory = this;
+    this.files.push(file);
+    return file;
+  }
 
-	get path() {
-		if (this.parent) {
-			return `${this.parent.path}/${this.name}`;
-		} else {
-			return '';
-		}
-	}
+  get path() {
+    if (this.parent) {
+      return `${this.parent.path}/${this.name}`;
+    } else {
+      return '';
+    }
+  }
 }
 const root = new Directory('');
 const desktop = root.addDirectory(new Directory('desktop'));
@@ -58,20 +58,20 @@ root.addFile(new File("README.txt", "This is a readme file"));
 export const modals = html();
 
 export const openFileDialog = ({ filter }) => {
-	return new Promise(resolve => {
-		const closeDialog = (result) => {
-			const dialogIdx = modals.indexOf(dialog);
-			modals.splice(dialogIdx, 1);
-			resolve(result);
-		}
+  return new Promise(resolve => {
+    const closeDialog = (result) => {
+      const dialogIdx = modals.indexOf(dialog);
+      modals.splice(dialogIdx, 1);
+      resolve(result);
+    }
 
-		const selectedFile = new State(null);
-		const isOpenDisabled = new State(true);
-		selectedFile.onUpdate(file => {
-			isOpenDisabled.value = !file;
-		});
+    const selectedFile = new State(null);
+    const isOpenDisabled = new State(true);
+    selectedFile.onUpdate(file => {
+      isOpenDisabled.value = !file;
+    });
 
-		const dialog = element`
+    const dialog = element`
 			<modal-dialog>
 				<style>
 					.filemanager-fileexplorer {
@@ -89,29 +89,29 @@ export const openFileDialog = ({ filter }) => {
 				>Open</button>
 			</modal-dialog>
 		`;
-		dialog.style.width = '300px';
-		dialog.addEventListener('file-explorer-select-file', ({ detail: file }) => selectedFile.value = file);
-		dialog.addEventListener('file-explorer-dblclick-file', ({ detail: file }) => closeDialog(file));
+    dialog.style.width = '300px';
+    dialog.addEventListener('file-explorer-select-file', ({ detail: file }) => selectedFile.value = file);
+    dialog.addEventListener('file-explorer-dblclick-file', ({ detail: file }) => closeDialog(file));
 
-		modals.push(dialog);
-	});
+    modals.push(dialog);
+  });
 };
 
 export const openSaveDialog = () => {
-	return new Promise(resolve => {
-		const closeDialog = (result) => {
-			const dialogIdx = modals.indexOf(dialog);
-			modals.splice(dialogIdx, 1);
-			resolve(result);
-		}
+  return new Promise(resolve => {
+    const closeDialog = (result) => {
+      const dialogIdx = modals.indexOf(dialog);
+      modals.splice(dialogIdx, 1);
+      resolve(result);
+    }
 
-		const filename = new State('');
-		const isSaveDisabled = new State(true);
-		filename.onUpdate(filename => {
-			isSaveDisabled.value = !filename;
-		});
+    const filename = new State('');
+    const isSaveDisabled = new State(true);
+    filename.onUpdate(filename => {
+      isSaveDisabled.value = !filename;
+    });
 
-		const dialog = element`
+    const dialog = element`
 			<modal-dialog>
 				<style>
 					.filemanager-fileexplorer {
@@ -131,99 +131,99 @@ export const openSaveDialog = () => {
 					placeholder="filename"
 					value=${filename}
 					onkeyup=${e => {
-						filename.value = e.target.value;	
-					}}
+        filename.value = e.target.value;
+      }}
 				/>
 				
 				<button slot="buttons" onclick=${() => closeDialog(null)}>Cancel</button>
 				<button slot="buttons" disabled=${isSaveDisabled} onclick=${() => {
-					closeDialog(`${dialog.querySelector('file-explorer').liveView.path}/${filename.value}`);	
-				}}>Save</button>
+        closeDialog(`${dialog.querySelector('file-explorer').liveView.path}/${filename.value}`);
+      }}>Save</button>
 			</modal-dialog>
 		`;
-		dialog.style.width = '300px';
-		dialog.addEventListener('file-explorer-select-file', ({ detail: file }) => {
-			if (file) {
-				filename.value = file.name
-			}
-		});
-		modals.push(dialog);
-	});
+    dialog.style.width = '300px';
+    dialog.addEventListener('file-explorer-select-file', ({ detail: file }) => {
+      if (file) {
+        filename.value = file.name
+      }
+    });
+    modals.push(dialog);
+  });
 };
 
 export class LiveView {
-	path = null;
-	directories = new State([]);
-	files = new State([]);
+  path = new State(null);
+  directories = new State([]);
+  files = new State([]);
 
-	constructor(path) {
-		this.path = path === '/' ? '' : path;
-		liveViews.push(this);
-		this.refresh();
-	}
+  constructor(path) {
+    this.path.value = path === '/' ? '' : path;
+    liveViews.push(this);
+    this.refresh();
+  }
 
-	close() {
-		const idx = liveViews.indexOf(this);
-		liveViews.splice(idx, 1);
-	}
+  close() {
+    const idx = liveViews.indexOf(this);
+    liveViews.splice(idx, 1);
+  }
 
-	refresh() {
-		const parts = this.path.split('/');
-		parts.shift(); // remove root
-		let directory = root;
-		while (parts.length) {
-			const part = parts.shift();
-			if (part === '..') {
-				directory = directory.parent;
-			} else if (part !== '.') {
-				directory = directory.directories.find(d => d.name === part);
-			}
-		}
+  refresh() {
+    const parts = this.path.value.split('/');
+    parts.shift(); // remove root
+    let directory = root;
+    while (parts.length) {
+      const part = parts.shift();
+      if (part === '..') {
+        directory = directory.parent;
+      } else if (part !== '.') {
+        directory = directory.directories.find(d => d.name === part);
+      }
+    }
 
-		if (!directory) {
-			this.directories.value = [];
-			this.files.value = [];
-		} else {
-			this.directories.value = [...directory.directories];
-			this.files.value = [...directory.files];
-		}
-	}
+    if (!directory) {
+      this.directories.value = [];
+      this.files.value = [];
+    } else {
+      this.directories.value = [...directory.directories];
+      this.files.value = [...directory.files];
+    }
+  }
 
-	navigate(path) {
-		this.path = path;
-		this.refresh();
-	}
+  navigate(path) {
+    this.path.value = path;
+    this.refresh();
+  }
 }
 
 export function openFile(file) {
-	// mime types? Where we're going, we don't need mime types
-	if (file.name.endsWith('.txt')) {
-		Pad.launchNotepad(file);
-	} else if (file.name.endsWith('.app')) {
-		Pad[`launch${file.name.replace('.app', '')}`]();
-	}
+  // mime types? Where we're going, we don't need mime types
+  if (file.name.endsWith('.txt')) {
+    Pad.launchNotepad(file);
+  } else if (file.name.endsWith('.app')) {
+    Pad[`launch${file.name.replace('.app', '')}`]();
+  }
 }
 
 export function writeFile(file, content) {
-	const parts = file.split('/');
-	parts.shift(); // remove root
-	const filename = parts.pop(); // remove filename
-	let directory = root;
-	for (const part of parts) {
-		if (part === '..') {
-			directory = directory.parent;
-		} else {
-			directory = directory.directories.find(d => d.name === part);
-		}
-	}
+  const parts = file.split('/');
+  parts.shift(); // remove root
+  const filename = parts.pop(); // remove filename
+  let directory = root;
+  for (const part of parts) {
+    if (part === '..') {
+      directory = directory.parent;
+    } else {
+      directory = directory.directories.find(d => d.name === part);
+    }
+  }
 
-	const existingFile = directory.files.find(f => f.name === filename);
-	if (existingFile) {
-		existingFile.content = content;
-	} else {
-		directory.addFile(new File(filename, content));
-		for (const view of liveViews) {
-			view.refresh();
-		}
-	}
+  const existingFile = directory.files.find(f => f.name === filename);
+  if (existingFile) {
+    existingFile.content = content;
+  } else {
+    directory.addFile(new File(filename, content));
+    for (const view of liveViews) {
+      view.refresh();
+    }
+  }
 }

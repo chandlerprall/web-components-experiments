@@ -128,8 +128,7 @@ export class ContainedNodeArray extends Array {
 }
 
 export class State {
-  connectedElement = null;
-
+  #connectedNode = undefined;
   #element = undefined;
   #value = undefined;
 
@@ -138,12 +137,7 @@ export class State {
 
   constructor(value, asElement = "span") {
     this.#value = value;
-    if (this.isValueElement) {
-      this.#element = this.#value;
-    } else {
-      this.#element = document.createElement(asElement);
-      this.#element.innerText = value;
-    }
+    this.#connectedNode = new ConnectedNode(value);
 
     Object.defineProperty(this, 'value', {
       get: () => this.#value,
@@ -151,18 +145,8 @@ export class State {
         if (this.#isUpdating) return;
         this.#isUpdating = true;
 
-        const oldValue = this.#value;
-        const oldElement = this.#element;
         this.#value = newValue;
-
-        if (this.isValueElement) {
-          this.#element = newValue;
-          oldElement.insertAdjacentElement('afterend', newValue);
-          oldElement.remove();
-        } else {
-          this.#element.innerText = newValue;
-        }
-
+        this.#connectedNode.value = newValue;
 
         for (let i = 0; i < this.#listeners.length; i++) {
           this.#listeners[i](newValue);
@@ -171,10 +155,6 @@ export class State {
         this.#isUpdating = false;
       }
     });
-  }
-
-  get isValueElement() {
-    return this.#value instanceof HTMLElement;
   }
 
   onUpdate(callback) {
@@ -195,25 +175,24 @@ export class State {
     return holder;
   }
 
-  connect(element, { replace } = {}) {
+  with(otherState) {
+    const holder = new State([this.#value, otherState.value]);
+    const update = () => {
+      holder.value = [this.#value, otherState.value];
+    }
+    // @TODO: how to garbage collect this?
+    this.onUpdate(update);
+    otherState.onUpdate(update);
+    return holder;
+  }
+
+  connect(element, options) {
     this.disconnect();
-
-    if (replace) {
-      this.connectedElement = element.parentNode;
-    } else {
-      this.connectedElement = element
-    }
-
-    if (replace) {
-      element.after(this.#element);
-      element.remove();
-    } else {
-      this.connectedElement.append(this.#element);
-    }
+    this.#connectedNode.connect(element, options);
   }
 
   disconnect() {
-    this.#element.parentNode?.removeChild(node);
+    this.#connectedNode.disconnect();
   }
 
   toString() {
@@ -346,8 +325,9 @@ const render = (strings = [''], ...rest) => {
       } else if (type === 'attribute') {
         const { id, attribute, part } = hydration;
         const element = (owningElement.shadowRoot ?? owningElement).querySelector(`[${attribute.name}="${id}"]`) ?? owningElement;
+        const elementTagLower = element.tagName.toLowerCase();
 
-        if (definedElements.has(element.tagName.toLowerCase())) {
+        if (definedElements.has(elementTagLower)) {
           // element came from us and already has the attribute set to the id
         } else {
           // we are in charge of managing the attribute value
@@ -364,6 +344,17 @@ const render = (strings = [''], ...rest) => {
           }
           part.onUpdate(updateAttribute);
           updateAttribute();
+
+          // if this element could be a custom element, when it's defined we may yield control of the attribute to the component itself
+          if (elementTagLower.indexOf('-') !== -1) {
+            customElements.whenDefined(elementTagLower).then(() => {
+              if (definedElements.has(elementTagLower) === false) return; // don't swap out if we don't control the element
+              part.offUpdate(updateAttribute);
+              const id = uniqueId();
+              idToValueMap[id] = part;
+              element.setAttribute(attribute.name, id);
+            });
+          }
         }
       } else if (type === 'attributemap') {
         // @TODO: garbage collection
@@ -428,6 +419,9 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
           return true;
         },
         get: (target, key) => {
+          if (key in target === false) {
+            target[key] = new State();
+          }
           return target[key];
         }
       }

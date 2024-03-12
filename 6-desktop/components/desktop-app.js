@@ -2,8 +2,8 @@ import { registerComponent, element } from 'runtime';
 import { windows, taskbarButtons, launchWindow } from '../windowmanager.js'
 import { modals as fileModals, openFile } from '../filemanager.js';
 
-registerComponent('desktop-app', ({ render, refs }) => {
-	render`
+registerComponent('desktop-app', ({ render }) => {
+  render`
 <style>
 #desktop {
 	padding: 0;
@@ -69,14 +69,13 @@ file-explorer {
 
 <main id="desktop">
 	<file-explorer
-		id="desktopFiles"
 		view="desktop"
 		initialpath="/desktop"
 		onfile-explorer-dblclick-file=${({ detail: file }) => openFile(file)}
 		onfile-explorer-dblclick-directory=${(e) => {
-			e.preventDefault();
-			launchFiles(e.detail.path);
-		}}
+      e.preventDefault();
+      launchFiles(e.detail.path);
+    }}
 	></file-explorer>
 	<section id="windows">${windows}</section>
 	<desktop-taskbar id="taskbar">
@@ -96,18 +95,18 @@ file-explorer {
 });
 
 export function launchCalculator() {
-	const window = launchWindow(element`
+  const window = launchWindow(element`
 		<desktop-window>
 			<span slot="icon">🧮</span>
 			<span slot="title">Calc</span>
 			<calculator-app></calculator-app>
 		</desktop-window>
 	`);
-	window.style.width = 'auto';
-	window.style.aspectRatio = '400 / 387';
+  window.style.width = 'auto';
+  window.style.aspectRatio = '400 / 387';
 }
 export function launchNotepad(file = '') {
-	launchWindow(element`
+  launchWindow(element`
 		<desktop-window>
 			<span slot="icon">📝</span>
 			<span slot="title">Notepad</span>
@@ -117,7 +116,7 @@ export function launchNotepad(file = '') {
 }
 
 export function launchFiles(path = '/') {
-	launchWindow(element`
+  launchWindow(element`
 		<desktop-window>
 			<span slot="icon">🗂️</span>
 			<span slot="title">Files</span>
@@ -127,7 +126,7 @@ export function launchFiles(path = '/') {
 }
 
 export function launchSettings() {
-	launchWindow(element`
+  launchWindow(element`
 		<desktop-window>
 			<span slot="icon">⚙️</span>
 			<span slot="title">Settings</span>

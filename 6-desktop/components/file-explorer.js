@@ -1,71 +1,69 @@
-import { registerComponent, html, element } from 'runtime';
-import { LiveView, openFile } from '../filemanager.js';
+import { registerComponent, element } from 'runtime';
+import { LiveView } from '../filemanager.js';
 
 registerComponent('file-explorer', ({ render, element: me, attributes }) => {
-	const liveView = me.liveView = new LiveView(attributes.initialpath?.value || '/');
+  const liveView = me.liveView = new LiveView(attributes.initialpath?.value || '/');
 
-	const crumbs = html``;
-	const directories = html``;
-	const files = html``;
+  me.addEventListener('click', () => me.emit('select-file', null));
 
-	me.addEventListener('click', () => me.emit('select-file', null));
-
-	function update() {
-		crumbs.splice(0, crumbs.length);
-		directories.splice(0, directories.length);
-		files.splice(0, files.length);
-
-		const path = liveView.path.split('/');
-		for (const part of path) {
-			crumbs.push(element`
-				<button class="crumb" onClick=${() => liveView.navigate(path.slice(0, path.indexOf(part) + 1).join('/'))}>
+  const crumbs = liveView.path.as(path => {
+    const crumbs = [];
+    const parts = path.split('/');
+    for (const part of parts) {
+      crumbs.push(element`
+				<button class="crumb" onClick=${() => liveView.navigate(parts.slice(0, parts.indexOf(part) + 1).join('/'))}>
 					${part || '/'}
 				</button>
 			`);
-		}
+    }
+    return crumbs;
+  });
 
-		const sortedDirectories = [...liveView.directories.value].sort((a, b) => a.name.localeCompare(b.name));
-		const sortedFiles = [...liveView.files.value].sort((a, b) => a.name.localeCompare(b.name));
-
-		for (const directory of sortedDirectories) {
-			directories.push(element`
+  const directories = liveView.directories.as(directories => {
+    const directoriesList = [];
+    const sortedDirectories = [...directories].sort((a, b) => a.name.localeCompare(b.name));
+    for (const directory of sortedDirectories) {
+      directoriesList.push(element`
 				<button class="item directory" onDblclick=${() => {
-					const result = me.emit('dblclick-directory', directory);
-					if (result) {
-						liveView.navigate(`${liveView.path}/${directory.name}`)	
-					}
-				}}>
+          const result = me.emit('dblclick-directory', directory);
+          if (result) {
+            liveView.navigate(`${liveView.path}/${directory.name}`)
+          }
+        }}>
 					<span class="icon">📁</span>
 					<span class="name">${directory.name}</span>
 				</button>
 			`);
-		}
-		for (const file of sortedFiles) {
-			const buttonElement = element`
+    }
+    return directoriesList;
+  });
+
+  const files = attributes.filter.with(liveView.files).as(([filter, files]) => {
+    const filesList = [];
+    const sortedFiles = [...files].sort((a, b) => a.name.localeCompare(b.name));
+    for (const file of sortedFiles) {
+      const buttonElement = element`
 				<button
 					class="item file"
 					onClick=${(e) => {
-						e.stopImmediatePropagation();
-						me.emit('select-file', file)
-					}}
+          e.stopImmediatePropagation();
+          me.emit('select-file', file)
+        }}
 					onDblclick=${() => me.emit('dblclick-file', file)}
 				>
 					<span class="icon">${file.icon}</span>
 					<span class="name">${file.name}</span>
 				</button>
 			`;
-			files.push(buttonElement);
-			if (!file.name.endsWith(attributes.filter?.value || '')) {
-				buttonElement.setAttribute('disabled', 'true')
-			}
-		}
-	}
-	liveView.directories.onUpdate(update);
-	liveView.files.onUpdate(update);
-	attributes.filter?.onUpdate(update);
-	update();
+      filesList.push(buttonElement);
+      if (!file.name.endsWith(filter || '')) {
+        buttonElement.setAttribute('disabled', 'true')
+      }
+    }
+    return filesList;
+  });
 
-	render`
+  render`
 <style>
 :host {
 	display: flex;
@@ -130,14 +128,20 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 			white-space: nowrap;
 			width: 100%;
 		}
-		
-		&:hover, &:focus {
-			background-color: color-mix(in srgb, var(--token-color-background) 80%, transparent);
-		}
-		
-		&:focus {
-			background-color: color-mix(in srgb, var(--token-color-highlight) 80%, transparent);
-		}
+
+    &:disabled {
+      color: color-mix(in srgb, var(--token-color-foreground) 40%, transparent);  
+    }
+
+    &:not(:disabled) {
+      &:hover, &:focus {
+        background-color: color-mix(in srgb, var(--token-color-background) 80%, transparent);
+      }
+      
+      &:focus {
+        background-color: color-mix(in srgb, var(--token-color-highlight) 80%, transparent);
+      }
+    }
 	}
 	
 	&:not(.list) .item {
@@ -190,7 +194,7 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 </section>
 	`;
 }, class FileExplorer extends HTMLElement {
-	disconnectedCallback() {
-		this.liveView.close();
-	}
+  disconnectedCallback() {
+    this.liveView.close();
+  }
 });
