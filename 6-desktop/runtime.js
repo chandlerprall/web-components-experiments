@@ -1,8 +1,14 @@
 export class ConnectedNode {
-  connectedElement = null;
+  static getNode(value) {
+    if (value instanceof HTMLElement) {
+      return value;
+    }
+    return new Text(value);
+  }
 
+  #anchor = document.createComment('ConnectedNode anchor');
   #value = undefined;
-  #isReplaced = undefined;
+  #valueNodes = [];
 
   constructor(value) {
     this.#value = value;
@@ -13,38 +19,45 @@ export class ConnectedNode {
     this.#inject();
   }
 
-  #inject() {
-    if (this.connectedElement == null) return;
-
-    const originallyConnectedElement = this.connectedElement;
-
-    if (this.#isReplaced) {
-      originallyConnectedElement.after(this.#value);
-      originallyConnectedElement.remove();
-    } else {
-      originallyConnectedElement.append(this.#value);
+  #removeValueNodes() {
+    while (this.#valueNodes.length) {
+      this.#valueNodes.pop().remove();
     }
+  }
+
+  #inject() {
+    if (this.#anchor.parentNode == null) return;
+    this.#removeValueNodes();
+
+    const values = Array.isArray(this.#value) ? this.#value : [this.#value];
+
+    let afterNode = this.#anchor;
+    for (let i = 0; i < values.length; i++) {
+      const valueNode = ConnectedNode.getNode(values[i]);
+      this.#valueNodes.push(valueNode);
+    }
+    afterNode.after(...this.#valueNodes);
   }
 
   connect(targetElement, { replace } = {}) {
     this.disconnect();
 
-    this.connectedElement = targetElement;
-    this.#isReplaced = replace ?? false;
+    if (replace === true) {
+      targetElement.replaceWith(this.#anchor);
+    } else {
+      targetElement.append(this.#anchor);
+    }
     this.#inject();
+
+    return this;
   }
 
   disconnect() {
-    if (this.connectedElement) {
-      if (this.#isReplaced) {
-        // create and insert an empty placeholder node
-      } else {
-        this.connectedElement.remove();
-      }
-
-      this.connectedElement = null;
-      this.#isReplaced = undefined;
+    if (this.#anchor.parentNode != null) {
+      this.#removeValueNodes();
+      this.#anchor.remove();
     }
+    return this;
   }
 }
 
@@ -226,10 +239,10 @@ function processPart(part, attribute, hydrations) {
     const id = uniqueId();
     idToValueMap[id] = part;
     if (attribute) {
-      hydrations.push({type: 'attribute', attribute, part, id});
+      hydrations.push({ type: 'attribute', attribute, part, id });
       return `"${id}"`;
     } else {
-      hydrations.push({type: 'dom', part, id});
+      hydrations.push({ type: 'dom', part, id });
       return `<data id="${id}"></data>`;
     }
   } else if (part && typeof part === 'object' && ATTRIBUTE_MAP in part) {
@@ -261,7 +274,7 @@ function processPart(part, attribute, hydrations) {
     if (part != null && typeof part === 'object') {
       const id = uniqueId();
       idToValueMap[id] = part;
-      hydrations.push({type: 'attribute', attribute, part, id});
+      hydrations.push({ type: 'attribute', attribute, part, id });
       return `"${id}"`;
     }
     return `"${part}"`;
@@ -391,9 +404,9 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
 
   isComponentString
     ? component
-        .split(/[\r\n]+/g)
-        .map(line => line.trim())
-        .join('\n')
+      .split(/[\r\n]+/g)
+      .map(line => line.trim())
+      .join('\n')
     : '';
 
   const template = document.createElement('template');
