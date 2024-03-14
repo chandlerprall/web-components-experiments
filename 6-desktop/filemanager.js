@@ -9,10 +9,20 @@ class File {
   content = null;
   icon = null;
 
-  constructor(name, content, icon = '📄') {
+  constructor(name, content, icon) {
     this.name = name;
     this.content = content;
-    this.icon = icon;
+    this.icon = this.#getIcon(icon);
+  }
+
+  #getIcon(icon) {
+    if (icon) {
+      return icon;
+    } else if (this.name.endsWith('.md')) {
+      return '📜';
+    } else {
+      return '📄';
+    }
   }
 }
 
@@ -48,12 +58,22 @@ class Directory {
   }
 }
 const root = new Directory('');
+root.addFile(new File('ipsum.txt', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'));
+
 const desktop = root.addDirectory(new Directory('desktop'));
-desktop.addFile(new File("Calculator.app", null, '🧮'));
-desktop.addFile(new File("Notepad.app", null, '📝'));
-desktop.addFile(new File("Files.app", null, '🗂️'));
-desktop.addFile(new File("Settings.app", null, '⚙️'));
-root.addFile(new File("README.txt", "This is a readme file"));
+const readme = desktop.addFile(new File('README.md', 'content is loading, please close and re-open'));
+fetch('./README.md').then(r => r.text()).then(content => {
+  readme.content = content;
+}).catch(e => {
+  console.error(e);
+  readme.content = 'Failed to load README.md; check the console for details.';
+});
+
+const desktopApps = desktop.addDirectory(new Directory('Apps'));
+desktopApps.addFile(new File("Calculator.app", null, '🧮'));
+desktopApps.addFile(new File("Notepad.app", null, '📝'));
+desktopApps.addFile(new File("Files.app", null, '🗂️'));
+desktopApps.addFile(new File("Settings.app", null, '⚙️'));
 
 export const modals = html();
 
@@ -80,7 +100,7 @@ export const openFileDialog = ({ filter }) => {
 				</style>
 				<strong>Select file</strong>
 				
-				<file-explorer class="filemanager-fileexplorer" view="list" filter=${filter ?? ''}></file-explorer>
+				<file-explorer class="filemanager-fileexplorer" view="list" filter=${filter}></file-explorer>
 				
 				<button slot="buttons" onclick=${() => closeDialog(null)}>Close</button>
 				<button slot="buttons"
@@ -199,6 +219,8 @@ export function openFile(file) {
   // mime types? Where we're going, we don't need mime types
   if (file.name.endsWith('.txt')) {
     Pad.launchNotepad(file);
+  } else if (file.name.endsWith('.md')) {
+    Pad.launchMarkdown(file);
   } else if (file.name.endsWith('.app')) {
     Pad[`launch${file.name.replace('.app', '')}`]();
   }

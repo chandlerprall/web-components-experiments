@@ -1,30 +1,30 @@
 import { registerComponent } from 'runtime';
 
 registerComponent('desktop-window', ({ element, render }) => {
-	const lastCursorPosition = { x: 0, y: 0 };
-	const onTitleMouseDown = ({ clientX, clientY }) => {
-		lastCursorPosition.x = clientX;
-		lastCursorPosition.y = clientY;
-		window.addEventListener('mousemove', onWindowMouseMove);
-		window.addEventListener('mouseup', onWindowMouseUp);
-	}
-	const onWindowMouseUp = (e) => {
-		onWindowMouseMove(e);
-		window.removeEventListener('mousemove', onWindowMouseMove, { capture: false });
-		window.removeEventListener('mouseup', onWindowMouseUp);
-	}
-	const onWindowMouseMove = ({ clientX, clientY }) => {
-		const deltaX = clientX - lastCursorPosition.x;
-		const deltaY = clientY - lastCursorPosition.y;
-		element.style.left = `${element.offsetLeft + deltaX}px`;
-		element.style.top = `${element.offsetTop + deltaY}px`;
-		lastCursorPosition.x = clientX;
-		lastCursorPosition.y = clientY;
-	}
+  const lastCursorPosition = { x: 0, y: 0 };
+  const onTitleMouseDown = ({ clientX, clientY }) => {
+    lastCursorPosition.x = clientX;
+    lastCursorPosition.y = clientY;
+    window.addEventListener('mousemove', onWindowMouseMove);
+    window.addEventListener('mouseup', onWindowMouseUp);
+  }
+  const onWindowMouseUp = (e) => {
+    onWindowMouseMove(e);
+    window.removeEventListener('mousemove', onWindowMouseMove, { capture: false });
+    window.removeEventListener('mouseup', onWindowMouseUp);
+  }
+  const onWindowMouseMove = ({ clientX, clientY }) => {
+    const deltaX = clientX - lastCursorPosition.x;
+    const deltaY = clientY - lastCursorPosition.y;
+    element.style.left = `${element.offsetLeft + deltaX}px`;
+    element.style.top = `${element.offsetTop + deltaY}px`;
+    lastCursorPosition.x = clientX;
+    lastCursorPosition.y = clientY;
+  }
 
-	element.addEventListener('mousedown', () => element.focus());
+  element.addEventListener('mousedown', () => element.focus());
 
-	render`
+  render`
 <style>
 :host {
 	position: absolute;
@@ -64,6 +64,7 @@ dialog {
 #content {
 	background-color: var(--token-color-system);
 	height: calc(100% - 25px);
+  overflow: scroll;
 }
 </style>
 
@@ -79,11 +80,11 @@ dialog {
 </dialog>
 	`;
 }, class DesktopWindow extends HTMLElement {
-	focus() {
-		this.emit('focus');
-	}
+  focus() {
+    this.emit('focus');
+  }
 
-	close() {
-		this.emit('close');
-	}
+  close() {
+    this.emit('close');
+  }
 });

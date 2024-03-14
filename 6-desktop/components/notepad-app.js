@@ -2,7 +2,7 @@ import { registerComponent } from 'runtime';
 import { openFileDialog, openSaveDialog, writeFile } from '../filemanager.js';
 
 registerComponent('notepad-app', ({ render, refs, attributes }) => {
-render`
+  render`
 <style>
 :host {
 	display: flex;
@@ -36,21 +36,21 @@ menu-bar {
 		
 		<button slot="menu" onClick=${() => refs.content.value = ''}>New</button>
 		<button slot="menu" onClick=${async () => {
-			const file = await openFileDialog({ filter: '.txt' });
-			if (file) refs.content.value = file.content;
-		}}>Open</button>
+      const file = await openFileDialog({ filter: ['.txt', '.md'] });
+      if (file) refs.content.value = file.content;
+    }}>Open</button>
 		<button slot="menu" onClick=${() => {
-			openSaveDialog().then(filepath => {
-				if (filepath) {
-					writeFile(filepath.endsWith('.txt') ? filepath : `${filepath}.txt`, refs.content.value);	
-				}
-			})
-		}}>Save</button>
+      openSaveDialog().then(filepath => {
+        if (filepath) {
+          const hasAcceptibleExtension = ['.txt', '.md'].some(ext => filepath.endsWith(ext));
+          writeFile(hasAcceptibleExtension ? filepath : `${filepath}.txt`, refs.content.value);
+        }
+      })
+    }}>Save</button>
 	</popover-menu>
 </menu-bar>
 <textarea id="content"></textarea>`;
 
-refs.content.value = attributes.file?.value?.content || '';
-
-globalThis.queueMicrotask(() => refs.content.focus());
+  refs.content.value = attributes.file?.value?.content || '';
+  refs.content.focus()
 });

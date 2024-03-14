@@ -38,7 +38,9 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
     return directoriesList;
   });
 
-  const files = attributes.filter.with(liveView.files).as(([filter, files]) => {
+  const files = attributes.filter.with(liveView.files).as(([filterAttribute, files]) => {
+    const filters = filterAttribute ?? [];
+
     const filesList = [];
     const sortedFiles = [...files].sort((a, b) => a.name.localeCompare(b.name));
     for (const file of sortedFiles) {
@@ -56,8 +58,16 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 				</button>
 			`;
       filesList.push(buttonElement);
-      if (!file.name.endsWith(filter || '')) {
-        buttonElement.setAttribute('disabled', 'true')
+
+      let matchesFilters = filters.length === 0;
+      for (let i = 0; i < filters.length; i++) {
+        if (file.name.endsWith(filters[i])) {
+          matchesFilters = true;
+          break;
+        }
+      }
+      if (!matchesFilters) {
+        buttonElement.setAttribute('disabled', 'true');
       }
     }
     return filesList;

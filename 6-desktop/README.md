@@ -31,3 +31,4 @@ Introduced `ConnectedNode` to better manage value rendering into DOM locations.
   - `<button disabled="false">...</button>`
 - `registerComponent`'s class extending is backwards
 - when attribute values are enclosed in quotes - `element<div id="${value}"></div>` - it isn't handled as an attribute
+- passing object attributes 

@@ -2,7 +2,7 @@ import { registerComponent, element } from 'runtime';
 import { windows, taskbarButtons, launchWindow } from '../windowmanager.js'
 import { modals as fileModals, openFile } from '../filemanager.js';
 
-registerComponent('desktop-app', ({ render, attributes, refs }) => {
+registerComponent('desktop-app', ({ render }) => {
   render`
 <style>
 #desktop {
@@ -59,11 +59,10 @@ file-explorer {
   pointer-events: none;
   
   &:not(:empty) {
+    pointer-events: all;
     background-color: color-mix(in srgb, var(--token-color-system) 80%, transparent);  
   }
-  * {
-    pointer-events: all;
-  }
+  
 }
 </style>
 
@@ -105,7 +104,7 @@ export function launchCalculator() {
   window.style.width = 'auto';
   window.style.aspectRatio = '400 / 387';
 }
-export function launchNotepad(file = '') {
+export function launchNotepad(file) {
   launchWindow(element`
 		<desktop-window>
 			<span slot="icon">📝</span>
@@ -133,4 +132,14 @@ export function launchSettings() {
 			<settings-app></settings-app>
 		</desktop-window>
 	`);
+}
+
+export function launchMarkdown(file) {
+  launchWindow(element`
+    <desktop-window>
+      <span slot="icon">📜</span>
+      <span slot="title">Markdown viewer</span>
+      <markdown-app file=${file}}></markdown-app>
+    </desktop-window>
+  `);
 }

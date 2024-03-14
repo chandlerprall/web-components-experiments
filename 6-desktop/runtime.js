@@ -248,7 +248,14 @@ function processPart(part, attribute, hydrations) {
     hydrations.push({ type: 'element', part, id });
     return `<data id="${id}"></data>`;
   } else if (Array.isArray(part)) {
-    return part.map(part => processPart(part, attribute, hydrations)).join('');
+    if (attribute) {
+      const id = uniqueId();
+      idToValueMap[id] = part;
+      hydrations.push({ type: 'attribute', attribute, part, id });
+      return `"${id}"`;
+    } else {
+      return part.map(part => processPart(part, attribute, hydrations)).join('');
+    }
   } else if (attribute) {
     if (part != null && typeof part === 'object') {
       const id = uniqueId();
