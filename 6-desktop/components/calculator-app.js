@@ -14,8 +14,8 @@ registerComponent('calculator-app', ({ element, render }) => {
 		}
 		answer.value = nextAnswer;
 	};
-	input.onUpdate(updateAnswer);
-	equation.onUpdate(updateAnswer);
+	input.on(updateAnswer);
+	equation.on(updateAnswer);
 
 	element.addEventListener("calculator-app-digit", ({ detail: digit }) => {
 		if (input.value.match(/^0((?!\.)|$)/)) {

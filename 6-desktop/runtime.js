@@ -157,32 +157,32 @@ export class Signal {
     });
   }
 
-  onUpdate(callback) {
+  on(callback) {
     this.#listeners.push(callback);
   }
 
-  offUpdate(callback) {
+  off(callback) {
     this.#listeners = this.#listeners.filter(listener => listener !== callback);
   }
 
   as(callback) {
     const holder = new Signal(callback(this.#value));
     // @TODO: how to garbage collect this?
-    this.onUpdate(nextValue => {
+    this.on(nextValue => {
       const result = callback(nextValue);
       holder.value = result;
     })
     return holder;
   }
 
-  with(otherState) {
-    const holder = new Signal([this.#value, otherState.value]);
+  with(otherSignal) {
+    const holder = new Signal([this.#value, otherSignal.value]);
     const update = () => {
-      holder.value = [this.#value, otherState.value];
+      holder.value = [this.#value, otherSignal.value];
     }
     // @TODO: how to garbage collect this?
-    this.onUpdate(update);
-    otherState.onUpdate(update);
+    this.on(update);
+    otherSignal.on(update);
     return holder;
   }
 
@@ -349,14 +349,14 @@ const render = (strings = [''], ...rest) => {
               }
             }
           }
-          part.onUpdate(updateAttribute);
+          part.on(updateAttribute);
           updateAttribute();
 
           // if this element could be a custom element, when it's defined we may yield control of the attribute to the component itself
           if (elementTagLower.indexOf('-') !== -1) {
             customElements.whenDefined(elementTagLower).then(() => {
               if (definedElements.has(elementTagLower) === false) return; // don't swap out if we don't control the element
-              part.offUpdate(updateAttribute);
+              part.off(updateAttribute);
               const id = uniqueId();
               idToValueMap[id] = part;
               element.setAttribute(attribute.name, id);
@@ -373,7 +373,7 @@ const render = (strings = [''], ...rest) => {
           }
         };
         updateAttributes();
-        publisher.onUpdate(() => updateAttributes());
+        publisher.on(() => updateAttributes());
       } else if (type === 'handler') {
         const { id, eventName, part } = hydration;
         const targetElement = (owningElement.shadowRoot ?? owningElement).querySelector(`[${eventName}="${id}"]`) ?? owningElement;
@@ -482,14 +482,14 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
       }
 
       if (value?.match(/^_unique_id_\d+/)) {
-        // @TODO: garbage collection (call offUpdate on component disconnectedCallback?)
+        // @TODO: garbage collection (call off on component disconnectedCallback?)
         const data = idToValueMap[value];
 
         if (data instanceof Signal) {
-          data.onUpdate(nextValue => {
+          data.on(nextValue => {
             this.attributes[attributeName] = nextValue;
           });
-          this.attributes[attributeName].onUpdate(nextValue => {
+          this.attributes[attributeName].on(nextValue => {
             data.value = nextValue;
           });
           this.attributes[attributeName].value = data.value;

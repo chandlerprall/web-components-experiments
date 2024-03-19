@@ -27,11 +27,7 @@ registerComponent('desktop-window', ({ element, render, context }) => {
   element.addEventListener('mousedown', () => element.focus());
 
   const title = new Signal('untitled window');
-  context[DesktopWindowContext] = {
-    setTitle(newTitle) {
-      title.value = newTitle;
-    }
-  };
+  context[DesktopWindowContext] = { title };
 
   render`
 <style>

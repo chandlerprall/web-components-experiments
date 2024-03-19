@@ -22,8 +22,8 @@ const settingtoPropertyMap = {
 registerComponent('settings-app', ({ render, refs }) => {
 	const selectedColor = new Signal(null);
 
-	Object.entries(settingsMap).forEach(([setting, state]) => {
-		state.onUpdate(newColor => {
+	Object.entries(settingsMap).forEach(([setting, signal]) => {
+		signal.on(newColor => {
 			refs[setting].style.color = newColor;
 			document.body.style.setProperty(settingtoPropertyMap[setting], newColor);
 		});

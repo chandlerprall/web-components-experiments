@@ -91,7 +91,7 @@ export const openFileDialog = ({ filter }) => {
 
     const selectedFile = new Signal(null);
     const isOpenDisabled = new Signal(true);
-    selectedFile.onUpdate(file => {
+    selectedFile.on(file => {
       isOpenDisabled.value = !file;
     });
 
@@ -131,7 +131,7 @@ export const openSaveDialog = () => {
 
     const filename = new Signal('');
     const isSaveDisabled = new Signal(true);
-    filename.onUpdate(filename => {
+    filename.on(filename => {
       isSaveDisabled.value = !filename;
     });
 

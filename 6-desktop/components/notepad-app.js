@@ -5,9 +5,9 @@ import { DesktopWindowContext } from './desktop-window.js';
 registerComponent('notepad-app', ({ render, refs, attributes, context }) => {
   const updateTitle = (filePath) => {
     if (filePath) {
-      context[DesktopWindowContext].setTitle(`Notepad - ${filePath}`);
+      context[DesktopWindowContext].title.value = `Notepad - ${filePath}`;
     } else {
-      context[DesktopWindowContext].setTitle('Notepad');
+      context[DesktopWindowContext].title.value = 'Notepad';
     }
   };
   updateTitle();

@@ -10,19 +10,21 @@ Components get a `refs` object automatically mapping IDs to the corresponding el
 
 Better event handling, including support for custom events. Handlers no longer pollute the global scope
 
-A component's `attributes` object now auto-populates a value when accessed.
+A component's `attributes` object now auto-populates a value when accessed
 
-Introduced `State::as` to map state values without losing reactivity
+Renamed `State` to `Signal` to match the zeitgeist
 
-Introduced `State::with` to map multiple state values without losing reactivity
+Introduced `Signal::as` to map values without losing reactivity
 
-Introduced `ConnectedNode` to better manage value rendering into DOM locations.
+Introduced `Signal::with` to map multiple values without losing reactivity
+
+Introduced `ConnectedNode` to better manage value rendering into DOM locations
 
 ## Challenges to solve
 
-- Map/[array method] over a state array (directories/files)
-  - at least for now, doable with `state.as()`
-  - similar, passing `disabled=${!someState}`
+- Map/[array method] over a signal array (directories/files)
+  - at least for now, doable with `signal.as()`
+  - similar, passing `disabled=${!someSignal}`
 - custom attribute handling
   - `style`
 - false attributes need to be managed

@@ -30,9 +30,9 @@ registerComponent('color-picker', ({ render, refs, attributes, element }) => {
 		updateColor();
 		element.emit('color', HSLToHex(hue.value, saturation.value, lightness.value));
 	};
-	hue.onUpdate(emitColor);
-	saturation.onUpdate(emitColor);
-	lightness.onUpdate(emitColor);
+	hue.on(emitColor);
+	saturation.on(emitColor);
+	lightness.on(emitColor);
 
 	// wait for refs to populate
 	globalThis.queueMicrotask(() => {

@@ -26,7 +26,7 @@ registerComponent('popover-menu', ({ render, attributes, refs }) => {
 		clearTimeout(leavingTimeout);
 	};
 
-	isOpen.onUpdate(isOpen => {
+	isOpen.on(isOpen => {
 		if (isOpen) {
 			refs.content.classList.add('open');
 			if (attributes.direction?.value === 'up') {
