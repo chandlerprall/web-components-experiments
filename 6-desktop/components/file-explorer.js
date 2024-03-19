@@ -44,21 +44,6 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
     const filesList = [];
     const sortedFiles = [...files].sort((a, b) => a.name.localeCompare(b.name));
     for (const file of sortedFiles) {
-      const buttonElement = element`
-				<button
-					class="item file"
-					onClick=${(e) => {
-          e.stopImmediatePropagation();
-          me.emit('select-file', file)
-        }}
-					onDblclick=${() => me.emit('dblclick-file', file)}
-				>
-					<span class="icon">${file.icon}</span>
-					<span class="name">${file.name}</span>
-				</button>
-			`;
-      filesList.push(buttonElement);
-
       let matchesFilters = filters.length === 0;
       for (let i = 0; i < filters.length; i++) {
         if (file.name.endsWith(filters[i])) {
@@ -66,9 +51,22 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
           break;
         }
       }
-      if (!matchesFilters) {
-        buttonElement.setAttribute('disabled', 'true');
-      }
+
+      const buttonElement = element`
+				<button
+					class="item file"
+					disabled=${!matchesFilters}
+					onClick=${(e) => {
+            e.stopImmediatePropagation();
+            me.emit('select-file', file)
+          }}
+					onDblclick=${() => me.emit('dblclick-file', file)}
+				>
+					<span class="icon">${file.icon}</span>
+					<span class="name">${file.name}</span>
+				</button>
+			`;
+      filesList.push(buttonElement);
     }
     return filesList;
   });

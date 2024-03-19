@@ -20,6 +20,8 @@ Introduced `Signal::with` to map multiple values without losing reactivity
 
 Introduced `ConnectedNode` to better manage value rendering into DOM locations
 
+Interpolated attributes with "true", "false" and truthy/falsy values are handled correctly
+
 ## Challenges to solve
 
 - Map/[array method] over a signal array (directories/files)
@@ -27,10 +29,5 @@ Introduced `ConnectedNode` to better manage value rendering into DOM locations
   - similar, passing `disabled=${!someSignal}`
 - custom attribute handling
   - `style`
-- false attributes need to be managed
-  - `<button disabled=${'false'}>...</button>`
-  - `<button disabled=${false}>...</button>`
-  - `<button disabled="false">...</button>`
 - `registerComponent`'s class extending is backwards
 - when attribute values are enclosed in quotes - `element<div id="${value}"></div>` - it isn't handled as an attribute
-- passing object attributes 

@@ -257,7 +257,11 @@ function processPart(part, attribute, hydrations) {
       return part.map(part => processPart(part, attribute, hydrations)).join('');
     }
   } else if (attribute) {
-    if (part != null && typeof part === 'object') {
+    if (typeof part === 'boolean' || part === 'true' || part === 'false' || part == null) {
+      const id = uniqueId();
+      hydrations.push({ type: 'booleanattribute', attribute, part, id });
+      return `"${id}"`;
+    } else if (typeof part === 'object') {
       const id = uniqueId();
       idToValueMap[id] = part;
       hydrations.push({ type: 'attribute', attribute, part, id });
@@ -330,7 +334,7 @@ const render = (strings = [''], ...rest) => {
         dataNode.before(part);
         dataNode.remove();
       } else if (type === 'attribute') {
-        const { id, attribute, part } = hydration;
+        const {id, attribute, part} = hydration;
         const element = (owningElement.shadowRoot ?? owningElement).querySelector(`[${attribute.name}="${id}"]`) ?? owningElement;
         const elementTagLower = element.tagName.toLowerCase();
 
@@ -342,7 +346,7 @@ const render = (strings = [''], ...rest) => {
             if (element.tagName === 'INPUT' && attribute.name === 'value') {
               element.value = part.value;
             } else {
-              if (part.value === false) {
+              if (part.value === false || part.value == null) {
                 element.removeAttribute(attribute.name);
               } else {
                 element.setAttribute(attribute.name, part.value);
@@ -362,6 +366,14 @@ const render = (strings = [''], ...rest) => {
               element.setAttribute(attribute.name, id);
             });
           }
+        }
+      } else if (type === 'booleanattribute') {
+        const {id, attribute, part} = hydration;
+        const element = (owningElement.shadowRoot ?? owningElement).querySelector(`[${attribute.name}="${id}"]`) ?? owningElement;
+        if (!part) {
+          element.removeAttribute(attribute.name);
+        } else {
+          element.setAttribute(attribute.name, '');
         }
       } else if (type === 'attributemap') {
         // @TODO: garbage collection
