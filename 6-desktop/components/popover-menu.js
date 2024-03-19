@@ -1,7 +1,7 @@
-import { registerComponent, State } from 'runtime';
+import { registerComponent, Signal } from 'runtime';
 
 registerComponent('popover-menu', ({ render, attributes, refs }) => {
-	const isOpen = new State(false);
+	const isOpen = new Signal(false);
 
 	window.addEventListener('click', () => {
 		isOpen.value = false;

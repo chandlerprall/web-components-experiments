@@ -1,6 +1,8 @@
-import { registerComponent } from 'runtime';
+import { registerComponent, Signal } from 'runtime';
 
-registerComponent('desktop-window', ({ element, render }) => {
+export const DesktopWindowContext = Symbol('DesktopWindowContext');
+
+registerComponent('desktop-window', ({ element, render, context }) => {
   const lastCursorPosition = { x: 0, y: 0 };
   const onTitleMouseDown = ({ clientX, clientY }) => {
     lastCursorPosition.x = clientX;
@@ -23,6 +25,13 @@ registerComponent('desktop-window', ({ element, render }) => {
   }
 
   element.addEventListener('mousedown', () => element.focus());
+
+  const title = new Signal('untitled window');
+  context[DesktopWindowContext] = {
+    setTitle(newTitle) {
+      title.value = newTitle;
+    }
+  };
 
   render`
 <style>
@@ -64,7 +73,7 @@ dialog {
 #content {
 	background-color: var(--token-color-system);
 	height: calc(100% - 25px);
-  overflow: scroll;
+  overflow: auto;
 }
 </style>
 
@@ -72,7 +81,7 @@ dialog {
 	<div id="titlebar" onMouseDown=${onTitleMouseDown}>
 		<span>
 			<slot name="icon"></slot>
-			<slot name="title"></slot>
+			<slot name="title">${title}</slot>
 		</span>
 		<button id="close" onClick=${() => element.close()}>ⓧ</button>
 	</div>

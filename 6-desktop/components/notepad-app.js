@@ -1,7 +1,17 @@
 import { registerComponent } from 'runtime';
 import { openFileDialog, openSaveDialog, writeFile } from '../filemanager.js';
+import { DesktopWindowContext } from './desktop-window.js';
 
-registerComponent('notepad-app', ({ render, refs, attributes }) => {
+registerComponent('notepad-app', ({ render, refs, attributes, context }) => {
+  const updateTitle = (filePath) => {
+    if (filePath) {
+      context[DesktopWindowContext].setTitle(`Notepad - ${filePath}`);
+    } else {
+      context[DesktopWindowContext].setTitle('Notepad');
+    }
+  };
+  updateTitle();
+
   render`
 <style>
 :host {
@@ -37,13 +47,17 @@ menu-bar {
 		<button slot="menu" onClick=${() => refs.content.value = ''}>New</button>
 		<button slot="menu" onClick=${async () => {
       const file = await openFileDialog({ filter: ['.txt', '.md'] });
-      if (file) refs.content.value = file.content;
+      if (file) {
+        refs.content.value = file.content;
+        updateTitle(file.path);
+      }
     }}>Open</button>
 		<button slot="menu" onClick=${() => {
       openSaveDialog().then(filepath => {
         if (filepath) {
           const hasAcceptibleExtension = ['.txt', '.md'].some(ext => filepath.endsWith(ext));
           writeFile(hasAcceptibleExtension ? filepath : `${filepath}.txt`, refs.content.value);
+          updateTitle(filepath);
         }
       })
     }}>Save</button>

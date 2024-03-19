@@ -1,9 +1,9 @@
-import { element as createElement, registerComponent, State } from 'runtime';
+import { element as createElement, registerComponent, Signal } from 'runtime';
 
 registerComponent('calculator-app', ({ element, render }) => {
-	const input = new State('0');
-	const equation = new State('');
-	const answer = new State('');
+	const input = new Signal('0');
+	const equation = new Signal('');
+	const answer = new Signal('');
 
 	const updateAnswer = () => {
 		let nextAnswer = '';

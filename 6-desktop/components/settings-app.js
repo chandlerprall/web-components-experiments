@@ -1,9 +1,9 @@
-import { registerComponent, State, element } from 'runtime';
+import { registerComponent, Signal, element } from 'runtime';
 
-const background = new State('#ffffff');
-const highlight = new State('#a9c2ea');
-const system = new State('#f0f0f0');
-const border = new State('#e0e0e0');
+const background = new Signal('#ffffff');
+const highlight = new Signal('#a9c2ea');
+const system = new Signal('#f0f0f0');
+const border = new Signal('#e0e0e0');
 
 const settingsMap = {
 	background,
@@ -20,7 +20,7 @@ const settingtoPropertyMap = {
 };
 
 registerComponent('settings-app', ({ render, refs }) => {
-	const selectedColor = new State(null);
+	const selectedColor = new Signal(null);
 
 	Object.entries(settingsMap).forEach(([setting, state]) => {
 		state.onUpdate(newColor => {

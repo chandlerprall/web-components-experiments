@@ -1,10 +1,15 @@
-import { registerComponent, State } from 'runtime';
+import { registerComponent, Signal } from 'runtime';
+
+let marked;
 
 registerComponent('markdown-app', ({ render, attributes }) => {
-  const marked = import('https://esm.run/marked');
+  marked = marked ?? Promise.all([
+    import('https://esm.run/marked'),
+    new Promise(resolve => setTimeout(resolve, 1500)),
+  ]).then(([marked]) => marked);
   const content = attributes.file?.value?.content ?? '';
 
-  const loadingMessage = new State('Rendering markdown...');
+  const loadingMessage = new Signal('Loading markdown renderer...');
   render`
 <style>
 :host {
@@ -22,7 +27,7 @@ section {
 </style>
 
 <section>
-  Loading content...
+  ${loadingMessage}
 </section>
   `;
 

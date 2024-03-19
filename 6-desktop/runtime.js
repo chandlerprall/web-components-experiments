@@ -395,6 +395,18 @@ export const element = (...args) => {
   return element;
 }
 
+const elementToContextMap = new WeakMap();
+const getElementContext = (element) => {
+  let elementContext;
+  if (elementToContextMap.has(element)) {
+    elementContext = elementToContextMap.get(element);
+  } else {
+    elementContext = {};
+    elementToContextMap.set(element, elementContext);
+  }
+  return elementContext;
+}
+
 export function registerComponent(name, componentDefinition, BaseClass = HTMLElement) {
   definedElements.add(name);
   const isComponentString = typeof componentDefinition === 'string';
@@ -499,6 +511,26 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
 
       // run component definition
       if (isComponentFunction) {
+        const element = this;
+
+        const context = new Proxy({}, {
+          get(target, key) {
+            let currentElement = element.parentElement;
+            while (currentElement) {
+              const elementContext = getElementContext(currentElement);
+              if (elementContext[key] !== undefined) {
+                return elementContext[key];
+              }
+              currentElement = currentElement.parentElement;
+            }
+          },
+
+          set(target, key, value) {
+            getElementContext(element)[key] = value;
+            return true;
+          }
+        });
+
         // @TODO: alert component definition on unmount
         componentDefinition({
           element: this,
@@ -508,6 +540,7 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
             hydrate(this);
 
             // bind elements to refs
+            // @TODO: this doesn't catch dom changes, should we use a mutation observer
             const elementsWithIds = this.shadowRoot.querySelectorAll('[id]');
             for (let i = 0; i < elementsWithIds.length; i++) {
               const element = elementsWithIds[i];
@@ -517,6 +550,7 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
           },
           refs: this.refs,
           attributes: this.attributes,
+          context,
         });
       }
     }

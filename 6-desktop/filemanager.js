@@ -24,6 +24,10 @@ class File {
       return '📄';
     }
   }
+
+  get path() {
+    return `${this.directory.path}/${this.name}`;
+  }
 }
 
 class Directory {

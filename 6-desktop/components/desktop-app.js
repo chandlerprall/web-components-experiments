@@ -108,7 +108,6 @@ export function launchNotepad(file) {
   launchWindow(element`
 		<desktop-window>
 			<span slot="icon">📝</span>
-			<span slot="title">Notepad</span>
 			<notepad-app file=${file}></notepad-app>
 		</desktop-window>
 	`);

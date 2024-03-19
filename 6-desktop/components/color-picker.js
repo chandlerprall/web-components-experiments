@@ -1,12 +1,12 @@
-import { registerComponent, State } from 'runtime';
+import { registerComponent, Signal } from 'runtime';
 
 registerComponent('color-picker', ({ render, refs, attributes, element }) => {
 	const initialvalue = attributes.initialvalue?.value || '#000000';
 	const initialHsl = hexToHSL(initialvalue);
 
-	const hue = new State(initialHsl.h);
-	const saturation = new State(initialHsl.s);
-	const lightness = new State(initialHsl.l);
+	const hue = new Signal(initialHsl.h);
+	const saturation = new Signal(initialHsl.s);
+	const lightness = new Signal(initialHsl.l);
 
 	const updateHue = (nextHue) => {
 		hue.value = nextHue;
