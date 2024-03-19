@@ -127,7 +127,7 @@ export class ContainedNodeArray extends Array {
   }
 }
 
-export class State {
+export class Signal {
   #connectedNode = undefined;
   #element = undefined;
   #value = undefined;
@@ -166,7 +166,7 @@ export class State {
   }
 
   as(callback) {
-    const holder = new State(callback(this.#value));
+    const holder = new Signal(callback(this.#value));
     // @TODO: how to garbage collect this?
     this.onUpdate(nextValue => {
       const result = callback(nextValue);
@@ -176,7 +176,7 @@ export class State {
   }
 
   with(otherState) {
-    const holder = new State([this.#value, otherState.value]);
+    const holder = new Signal([this.#value, otherState.value]);
     const update = () => {
       holder.value = [this.#value, otherState.value];
     }
@@ -214,7 +214,7 @@ const uniqueId = () => {
 }
 
 function processPart(part, attribute, hydrations) {
-  if (part instanceof State) {
+  if (part instanceof Signal) {
     const id = uniqueId();
     idToValueMap[id] = part;
     if (attribute) {
@@ -412,10 +412,10 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
 
   const ComponentClass = class extends BaseClass {
     attributes = new Proxy(
-      { [ATTRIBUTE_MAP]: new State(0) },
+      { [ATTRIBUTE_MAP]: new Signal(0) },
       {
         set: (target, key, value) => {
-          if (value instanceof State) {
+          if (value instanceof Signal) {
             target[key] = value;
           } else {
             target[key].value = value;
@@ -427,7 +427,7 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
         },
         get: (target, key) => {
           if (key in target === false) {
-            target[key] = new State();
+            target[key] = new Signal();
           }
           return target[key];
         }
@@ -466,14 +466,14 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
 
     #attachAttribute(attributeName, value, oldValue) {
       if (!this.attributes.hasOwnProperty(attributeName)) {
-        this.attributes[attributeName] = new State();
+        this.attributes[attributeName] = new Signal();
       }
 
       if (value?.match(/^_unique_id_\d+/)) {
         // @TODO: garbage collection (call offUpdate on component disconnectedCallback?)
         const data = idToValueMap[value];
 
-        if (data instanceof State) {
+        if (data instanceof Signal) {
           data.onUpdate(nextValue => {
             this.attributes[attributeName] = nextValue;
           });

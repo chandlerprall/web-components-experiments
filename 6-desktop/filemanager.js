@@ -1,4 +1,4 @@
-import { html, element, State } from 'runtime';
+import { html, element, Signal } from 'runtime';
 import * as Pad from './components/desktop-app.js';
 
 const liveViews = [];
@@ -85,8 +85,8 @@ export const openFileDialog = ({ filter }) => {
       resolve(result);
     }
 
-    const selectedFile = new State(null);
-    const isOpenDisabled = new State(true);
+    const selectedFile = new Signal(null);
+    const isOpenDisabled = new Signal(true);
     selectedFile.onUpdate(file => {
       isOpenDisabled.value = !file;
     });
@@ -125,8 +125,8 @@ export const openSaveDialog = () => {
       resolve(result);
     }
 
-    const filename = new State('');
-    const isSaveDisabled = new State(true);
+    const filename = new Signal('');
+    const isSaveDisabled = new Signal(true);
     filename.onUpdate(filename => {
       isSaveDisabled.value = !filename;
     });
@@ -172,9 +172,9 @@ export const openSaveDialog = () => {
 };
 
 export class LiveView {
-  path = new State(null);
-  directories = new State([]);
-  files = new State([]);
+  path = new Signal(null);
+  directories = new Signal([]);
+  files = new Signal([]);
 
   constructor(path) {
     this.path.value = path === '/' ? '' : path;

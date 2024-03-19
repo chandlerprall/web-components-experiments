@@ -11,8 +11,9 @@ Currently only autonomous custom elements are supported, but this prevents doing
 Browser DOM APIs are powerful but overly often too verbose to understand at a glance. This library provides an `element` tagged template literal to make creating DOM much easier.
 
 ```javascript
-import { element, State } from './6-desktop/runtime.js';
-const counter = new State(0);
+import {element, Signal} from './6-desktop/runtime.js';
+
+const counter = new Signal(0);
 const app = element`
   <div>
     <button onclick=${() => counter.value += 1}>increment</button>
@@ -54,11 +55,12 @@ registerComponent('my-component', ({ render, attributes, refs }) => {
 Local component state is stored in `State` objects. These are subscribable values that can be read and written to, and can be passed directly into parts of the DOM string.
 
 ```javascript
-import { State } from './6-desktop/runtime.js';
-registerComponent('value-incrementer', ({ render }) => {
+import {Signal} from './6-desktop/runtime.js';
+
+registerComponent('value-incrementer', ({render}) => {
   // declare a local state value
-  const counter = new State({ count: 0 });
-  
+  const counter = new Signal({count: 0});
+
   // render the value in the DOM and also pass it to a hidden input's value 
   render`
     <div>
@@ -67,7 +69,7 @@ registerComponent('value-incrementer', ({ render }) => {
       <input type="hidden" value=${counter} />
     </div>
   `;
-  
+
   // respond to state changes if needed
   counter.onUpdate(value => console.log(`counter is now ${value}`));
 });
@@ -78,13 +80,13 @@ registerComponent('value-incrementer', ({ render }) => {
 State objects can be declared outside of a component definition and consumed in the same way,
 
 ```javascript
-import { State } from './6-desktop/runtime.js';
+import {Signal} from './6-desktop/runtime.js';
 
 // declare a state value that all value-incrementer components will share
 // alternatively, this could be defined in a separate file and imported
-const counter = new State({ count: 0 });
+const counter = new Signal({count: 0});
 
-registerComponent('value-incrementer', ({ render }) => {
+registerComponent('value-incrementer', ({render}) => {
   // render the value in the DOM and also pass it to a hidden input's value 
   render`
     <div>
@@ -93,7 +95,7 @@ registerComponent('value-incrementer', ({ render }) => {
       <input type="hidden" value=${counter} />
     </div>
   `;
-  
+
   // respond to state changes if needed
   counter.onUpdate(value => console.log(`counter is now ${value}`));
 });
