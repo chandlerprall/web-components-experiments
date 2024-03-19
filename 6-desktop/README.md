@@ -24,9 +24,6 @@ Interpolated attributes with "true", "false" and truthy/falsy values are handled
 
 ## Challenges to solve
 
-- Map/[array method] over a signal array (directories/files)
-  - at least for now, doable with `signal.as()`
-  - similar, passing `disabled=${!someSignal}`
 - custom attribute handling
   - `style`
 - `registerComponent`'s class extending is backwards
