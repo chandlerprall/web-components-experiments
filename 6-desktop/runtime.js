@@ -175,6 +175,24 @@ export class Signal {
     return holder;
   }
 
+  static with(...signals) {
+    const holder = new Signal(signals.map(signal => signal.value));
+
+    let isQueued = false;
+    const doUpdate = () => {
+      isQueued = false;
+      holder.value = signals.map(signal => signal.value);
+    }
+    const onUpdate = () => {
+      if (isQueued) return;
+      isQueued = true;
+      queueMicrotask(doUpdate);
+    }
+    signals.forEach(signal => signal.on(onUpdate));
+    // @TODO: how to garbage collect this?
+    return holder;
+  }
+
   with(otherSignal) {
     const holder = new Signal([this.#value, otherSignal.value]);
     const update = () => {
@@ -334,11 +352,27 @@ const render = (strings = [''], ...rest) => {
         dataNode.before(part);
         dataNode.remove();
       } else if (type === 'attribute') {
-        const {id, attribute, part} = hydration;
+        const { id, attribute, part } = hydration;
         const element = (owningElement.shadowRoot ?? owningElement).querySelector(`[${attribute.name}="${id}"]`) ?? owningElement;
         const elementTagLower = element.tagName.toLowerCase();
 
-        if (definedElements.has(elementTagLower)) {
+        if (attribute.name === 'style') {
+          element.removeAttribute('style');
+          function applyStyleObject(element, style) {
+            for (const key in style) {
+              element.style[key] = style[key];
+            }
+          }
+          if (part instanceof Signal) {
+            // @TODO: un-apply previous styles from this signal
+            part.on(nextValue => {
+              applyStyleObject(element, nextValue);
+            });
+            applyStyleObject(element, part.value);
+          } else {
+            applyStyleObject(element, part);
+          }
+        } else if (definedElements.has(elementTagLower)) {
           // element came from us and already has the attribute set to the id
         } else {
           // we are in charge of managing the attribute value
@@ -368,7 +402,7 @@ const render = (strings = [''], ...rest) => {
           }
         }
       } else if (type === 'booleanattribute') {
-        const {id, attribute, part} = hydration;
+        const { id, attribute, part } = hydration;
         const element = (owningElement.shadowRoot ?? owningElement).querySelector(`[${attribute.name}="${id}"]`) ?? owningElement;
         if (!part) {
           element.removeAttribute(attribute.name);

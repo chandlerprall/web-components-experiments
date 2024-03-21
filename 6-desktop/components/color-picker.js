@@ -1,53 +1,37 @@
 import { registerComponent, Signal } from 'runtime';
 
 registerComponent('color-picker', ({ render, refs, attributes, element }) => {
-	const initialvalue = attributes.initialvalue?.value || '#000000';
-	const initialHsl = hexToHSL(initialvalue);
+  const initialvalue = attributes.initialvalue?.value || '#000000';
+  const initialHsl = hexToHSL(initialvalue);
 
-	const hue = new Signal(initialHsl.h);
-	const saturation = new Signal(initialHsl.s);
-	const lightness = new Signal(initialHsl.l);
+  const hue = new Signal(initialHsl.h);
+  const saturation = new Signal(initialHsl.s);
+  const lightness = new Signal(initialHsl.l);
 
-	const updateHue = (nextHue) => {
-		hue.value = nextHue;
-		refs.colorBg.style.backgroundColor = `hsl(${nextHue}, 100%, 50%)`;
-	};
+  const updateHue = (nextHue) => {
+    hue.value = nextHue;
+  };
 
-	const updateSaturation = (nextSaturation) => {
-		saturation.value = nextSaturation;
-	};
+  const updateSaturation = (nextSaturation) => {
+    saturation.value = nextSaturation;
+  };
 
-	const updateLightness = (nextLightness) => {
-		lightness.value = nextLightness;
-	};
+  const updateLightness = (nextLightness) => {
+    lightness.value = nextLightness;
+  };
 
-	const updateColor = () => {
-		refs.colorIndicator.style.left = `${saturation.value}%`;
-		refs.colorIndicator.style.top = `${100 - lightness.value}%`;
-		refs.colorResult.style.backgroundColor = `hsl(${hue.value}, ${saturation.value}%, ${lightness.value}%)`;
-	}
-	const emitColor = () => {
-		updateColor();
-		element.emit('color', HSLToHex(hue.value, saturation.value, lightness.value));
-	};
-	hue.on(emitColor);
-	saturation.on(emitColor);
-	lightness.on(emitColor);
+  Signal.with(hue, saturation, lightness).on(([h, s, l]) => {
+    element.emit('color', HSLToHex(h, s, l));
+  });
 
-	// wait for refs to populate
-	globalThis.queueMicrotask(() => {
-		refs.colorBg.style.backgroundColor = `hsl(${hue.value}, 100%, 50%)`;
-		updateColor();
-	});
+  const getValuesFromClickEvent = (e) => {
+    const nextSaturation = e.offsetX / e.target.clientWidth * 100;
+    const nextLightness = 100 - (e.offsetY / e.target.clientHeight * 100);
+    saturation.value = nextSaturation.toFixed(2);
+    lightness.value = nextLightness.toFixed(2);
+  };
 
-	const getValuesFromClickEvent = (e) => {
-		const nextSaturation = e.offsetX / e.target.clientWidth * 100;
-		const nextLightness = 100 - (e.offsetY / e.target.clientHeight * 100);
-		saturation.value = nextSaturation.toFixed(2);
-		lightness.value = nextLightness.toFixed(2);
-	};
-
-	render`
+  render`
 <style>
 .colorpicker {
 	width: 250px;
@@ -118,10 +102,19 @@ registerComponent('color-picker', ({ render, refs, attributes, element }) => {
 </style>
 
 <div class="colorpicker">
-  <section id="colorBg" class="colorBox" onClick=${getValuesFromClickEvent}>
+  <section
+    class="colorBox"
+    style=${hue.as(hue => ({ backgroundColor: `hsl(${hue}, 100%, 50%)` }))}
+    onClick=${getValuesFromClickEvent}
+  >
     <div class="saturationBg"></div>
     <div class="lightnessBg"></div>
-    <div id="colorIndicator"></div>
+    <div id="colorIndicator"
+      style=${Signal.with(saturation, lightness).as(([saturation, lightness]) => ({
+        left: `${saturation}%`,
+        top: `${100 - lightness}%`,
+      }))}
+    ></div>
   </section>
   <section class="values">
     <input type="range" min="0" max="360" class="hueSlider" value=${hue} onChange=${(e) => updateHue(parseFloat(e.target.value))} />
@@ -130,7 +123,12 @@ registerComponent('color-picker', ({ render, refs, attributes, element }) => {
   </section>
   <section id="result">
     (${hue}, ${saturation}%, ${lightness}%)
-    <div id="colorResult"></div>
+    <div
+      id="colorResult"
+      style=${Signal.with(hue, saturation, lightness).as(([hue, saturation, lightness]) => 
+        ({ backgroundColor: `hsl(${hue}, ${saturation}%, ${lightness}%)` })
+      )}
+    ></div>
   </section>
 </div>
 	`;
@@ -138,86 +136,86 @@ registerComponent('color-picker', ({ render, refs, attributes, element }) => {
 
 // https://css-tricks.com/converting-color-spaces-in-javascript/
 function hexToHSL(H) {
-	// Convert hex to RGB first
-	let r = 0, g = 0, b = 0;
-	if (H.length == 4) {
-		r = "0x" + H[1] + H[1];
-		g = "0x" + H[2] + H[2];
-		b = "0x" + H[3] + H[3];
-	} else if (H.length == 7) {
-		r = "0x" + H[1] + H[2];
-		g = "0x" + H[3] + H[4];
-		b = "0x" + H[5] + H[6];
-	}
-	// Then to HSL
-	r /= 255;
-	g /= 255;
-	b /= 255;
-	let cmin = Math.min(r,g,b),
-		cmax = Math.max(r,g,b),
-		delta = cmax - cmin,
-		h = 0,
-		s = 0,
-		l = 0;
+  // Convert hex to RGB first
+  let r = 0, g = 0, b = 0;
+  if (H.length == 4) {
+    r = "0x" + H[1] + H[1];
+    g = "0x" + H[2] + H[2];
+    b = "0x" + H[3] + H[3];
+  } else if (H.length == 7) {
+    r = "0x" + H[1] + H[2];
+    g = "0x" + H[3] + H[4];
+    b = "0x" + H[5] + H[6];
+  }
+  // Then to HSL
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  let cmin = Math.min(r, g, b),
+    cmax = Math.max(r, g, b),
+    delta = cmax - cmin,
+    h = 0,
+    s = 0,
+    l = 0;
 
-	if (delta == 0)
-		h = 0;
-	else if (cmax == r)
-		h = ((g - b) / delta) % 6;
-	else if (cmax == g)
-		h = (b - r) / delta + 2;
-	else
-		h = (r - g) / delta + 4;
+  if (delta == 0)
+    h = 0;
+  else if (cmax == r)
+    h = ((g - b) / delta) % 6;
+  else if (cmax == g)
+    h = (b - r) / delta + 2;
+  else
+    h = (r - g) / delta + 4;
 
-	h = Math.round(h * 60);
+  h = Math.round(h * 60);
 
-	if (h < 0)
-		h += 360;
+  if (h < 0)
+    h += 360;
 
-	l = (cmax + cmin) / 2;
-	s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
-	s = +(s * 100).toFixed(1);
-	l = +(l * 100).toFixed(1);
+  l = (cmax + cmin) / 2;
+  s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+  s = +(s * 100).toFixed(1);
+  l = +(l * 100).toFixed(1);
 
-	return { h, s, l };
+  return { h, s, l };
 }
 
-function HSLToHex(h,s,l) {
-	s /= 100;
-	l /= 100;
+function HSLToHex(h, s, l) {
+  s /= 100;
+  l /= 100;
 
-	let c = (1 - Math.abs(2 * l - 1)) * s,
-		x = c * (1 - Math.abs((h / 60) % 2 - 1)),
-		m = l - c/2,
-		r = 0,
-		g = 0,
-		b = 0;
+  let c = (1 - Math.abs(2 * l - 1)) * s,
+    x = c * (1 - Math.abs((h / 60) % 2 - 1)),
+    m = l - c / 2,
+    r = 0,
+    g = 0,
+    b = 0;
 
-	if (0 <= h && h < 60) {
-		r = c; g = x; b = 0;
-	} else if (60 <= h && h < 120) {
-		r = x; g = c; b = 0;
-	} else if (120 <= h && h < 180) {
-		r = 0; g = c; b = x;
-	} else if (180 <= h && h < 240) {
-		r = 0; g = x; b = c;
-	} else if (240 <= h && h < 300) {
-		r = x; g = 0; b = c;
-	} else if (300 <= h && h < 360) {
-		r = c; g = 0; b = x;
-	}
-	// Having obtained RGB, convert channels to hex
-	r = Math.round((r + m) * 255).toString(16);
-	g = Math.round((g + m) * 255).toString(16);
-	b = Math.round((b + m) * 255).toString(16);
+  if (0 <= h && h < 60) {
+    r = c; g = x; b = 0;
+  } else if (60 <= h && h < 120) {
+    r = x; g = c; b = 0;
+  } else if (120 <= h && h < 180) {
+    r = 0; g = c; b = x;
+  } else if (180 <= h && h < 240) {
+    r = 0; g = x; b = c;
+  } else if (240 <= h && h < 300) {
+    r = x; g = 0; b = c;
+  } else if (300 <= h && h < 360) {
+    r = c; g = 0; b = x;
+  }
+  // Having obtained RGB, convert channels to hex
+  r = Math.round((r + m) * 255).toString(16);
+  g = Math.round((g + m) * 255).toString(16);
+  b = Math.round((b + m) * 255).toString(16);
 
-	// Prepend 0s, if necessary
-	if (r.length == 1)
-		r = "0" + r;
-	if (g.length == 1)
-		g = "0" + g;
-	if (b.length == 1)
-		b = "0" + b;
+  // Prepend 0s, if necessary
+  if (r.length == 1)
+    r = "0" + r;
+  if (g.length == 1)
+    g = "0" + g;
+  if (b.length == 1)
+    b = "0" + b;
 
-	return "#" + r + g + b;
+  return "#" + r + g + b;
 }

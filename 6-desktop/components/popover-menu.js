@@ -1,45 +1,40 @@
 import { registerComponent, Signal } from 'runtime';
 
 registerComponent('popover-menu', ({ render, attributes, refs }) => {
-	const isOpen = new Signal(false);
+  const isOpen = new Signal(false);
 
-	window.addEventListener('click', () => {
-		isOpen.value = false;
-	});
+  window.addEventListener('click', () => {
+    isOpen.value = false;
+  });
 
-	const onAnchorClick = (e) => {
-		e.stopImmediatePropagation();
-		e.preventDefault();
-		isOpen.value = !isOpen.value;
-	};
-	const onMenuClick = () => {
-		isOpen.value = false;
-	}
+  const onAnchorClick = (e) => {
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    isOpen.value = !isOpen.value;
+  };
+  const onMenuClick = () => {
+    isOpen.value = false;
+  }
 
-	let leavingTimeout;
-	const onMouseLeave = () => {
-		leavingTimeout = setTimeout(() => {
-			isOpen.value = false;
-		}, 500);
-	};
-	const onMouseEnter = () => {
-		clearTimeout(leavingTimeout);
-	};
+  let leavingTimeout;
+  const onMouseLeave = () => {
+    leavingTimeout = setTimeout(() => {
+      isOpen.value = false;
+    }, 500);
+  };
+  const onMouseEnter = () => {
+    clearTimeout(leavingTimeout);
+  };
 
-	isOpen.on(isOpen => {
-		if (isOpen) {
-			refs.content.classList.add('open');
-			if (attributes.direction?.value === 'up') {
-				refs.content.style.bottom = '100%';
-			} else {
-				refs.content.style.top = '100%';
-			}
-		} else {
-			refs.content.classList.remove('open');
-		}
-	});
+  isOpen.on(isOpen => {
+    if (isOpen) {
+      refs.content.classList.add('open');
+    } else {
+      refs.content.classList.remove('open');
+    }
+  });
 
-	render`
+  render`
 <style>
 :host {
 	display: inline-block;
@@ -88,7 +83,15 @@ menu ::slotted(button:active) {
 
 <section class="popover-menu" onMouseLeave=${onMouseLeave} onMouseEnter=${onMouseEnter}>
 	<div id="anchor" onClick=${onAnchorClick}><slot></slot></div>
-	<menu id="content" onClick=${onMenuClick}><slot name="menu"></slot></menu>
+	<menu
+    id="content"
+    onClick=${onMenuClick}
+    style=${attributes.direction.as(direction => ({
+      [direction === 'up' ? 'bottom' : 'top']: '100%'
+    }))}
+  >
+    <slot name="menu"></slot>
+  </menu>
 </section>
 `;
 });

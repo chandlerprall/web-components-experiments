@@ -94,15 +94,13 @@ file-explorer {
 });
 
 export function launchCalculator() {
-  const window = launchWindow(element`
-		<desktop-window>
+  launchWindow(element`
+		<desktop-window style=${{ aspectRatio: '400 / 387' }}>
 			<span slot="icon">🧮</span>
 			<span slot="title">Calc</span>
 			<calculator-app></calculator-app>
 		</desktop-window>
-	`);
-  window.style.width = 'auto';
-  window.style.aspectRatio = '400 / 387';
+	`, { width: 'auto' });
 }
 export function launchNotepad(file) {
   launchWindow(element`

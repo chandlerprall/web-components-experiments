@@ -92,7 +92,11 @@ export const openFileDialog = ({ filter }) => {
     const selectedFile = new Signal(null);
 
     const dialog = element`
-			<modal-dialog>
+			<modal-dialog
+        onfile-explorer-select-file=${({ detail: file }) => selectedFile.value = file}
+        onfile-explorer-dblclick-file=${({ detail: file }) => closeDialog(file)}
+        style=${{ width: '300px' }}
+      >
 				<style>
 					.filemanager-fileexplorer {
 						height: 200px;
@@ -109,9 +113,6 @@ export const openFileDialog = ({ filter }) => {
 				>Open</button>
 			</modal-dialog>
 		`;
-    dialog.style.width = '300px';
-    dialog.addEventListener('file-explorer-select-file', ({ detail: file }) => selectedFile.value = file);
-    dialog.addEventListener('file-explorer-dblclick-file', ({ detail: file }) => closeDialog(file));
 
     modals.push(dialog);
   });
@@ -128,7 +129,14 @@ export const openSaveDialog = () => {
     const filename = new Signal('');
 
     const dialog = element`
-			<modal-dialog>
+			<modal-dialog
+        style=${{ width: '300px' }}
+        onfile-explorer-select-file=${({ detail: file }) => {
+          if (file) {
+            filename.value = file.name
+          }
+        }}
+      >
 				<style>
 					.filemanager-fileexplorer {
 						height: 200px;
@@ -157,12 +165,6 @@ export const openSaveDialog = () => {
       }}>Save</button>
 			</modal-dialog>
 		`;
-    dialog.style.width = '300px';
-    dialog.addEventListener('file-explorer-select-file', ({ detail: file }) => {
-      if (file) {
-        filename.value = file.name
-      }
-    });
     modals.push(dialog);
   });
 };

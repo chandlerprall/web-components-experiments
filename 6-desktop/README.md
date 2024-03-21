@@ -14,7 +14,7 @@ A component's `attributes` object now auto-populates a value when accessed
 
 Renamed `State` to `Signal` to match the zeitgeist
 
-Introduced `Signal::as` to map values without losing reactivity
+Introduced `Signal#as` to map values without losing reactivity
 
 Introduced `Signal::with` to map multiple values without losing reactivity
 
@@ -24,7 +24,5 @@ Interpolated attributes with "true", "false" and truthy/falsy values are handled
 
 ## Challenges to solve
 
-- custom attribute handling
-  - `style`
 - `registerComponent`'s class extending is backwards
 - when attribute values are enclosed in quotes - `element<div id="${value}"></div>` - it isn't handled as an attribute

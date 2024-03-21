@@ -1,6 +1,8 @@
-import { registerComponent } from 'runtime';
+import { registerComponent, Signal } from 'runtime';
 import { openFileDialog, openSaveDialog, writeFile } from '../filemanager.js';
 import { DesktopWindowContext } from './desktop-window.js';
+
+const direction = window.direction = new Signal();
 
 registerComponent('notepad-app', ({ render, refs, attributes, context }) => {
   const updateTitle = (filePath) => {
@@ -41,7 +43,7 @@ menu-bar {
 </style>
 
 <menu-bar>
-	<popover-menu>
+	<popover-menu direction=${direction}>
 		<button class="menuButton">File</button>
 		
 		<button slot="menu" onClick=${() => refs.content.value = ''}>New</button>
@@ -56,8 +58,9 @@ menu-bar {
       openSaveDialog().then(filepath => {
         if (filepath) {
           const hasAcceptibleExtension = ['.txt', '.md'].some(ext => filepath.endsWith(ext));
-          writeFile(hasAcceptibleExtension ? filepath : `${filepath}.txt`, refs.content.value);
-          updateTitle(filepath);
+          const finalFilepath = hasAcceptibleExtension ? filepath : `${filepath}.txt`;
+          writeFile(finalFilepath, refs.content.value);
+          updateTitle(finalFilepath);
         }
       })
     }}>Save</button>

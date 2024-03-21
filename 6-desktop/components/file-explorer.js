@@ -1,4 +1,4 @@
-import { registerComponent, element } from 'runtime';
+import { registerComponent, element, Signal } from 'runtime';
 import { LiveView } from '../filemanager.js';
 
 registerComponent('file-explorer', ({ render, element: me, attributes }) => {
@@ -38,7 +38,7 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
     return directoriesList;
   });
 
-  const files = attributes.filter.with(liveView.files).as(([filterAttribute, files]) => {
+  const files = Signal.with(attributes.filter, liveView.files).as(([filterAttribute, files]) => {
     const filters = filterAttribute ?? [];
 
     const filesList = [];
@@ -57,9 +57,9 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 					class="item file"
 					disabled=${!matchesFilters}
 					onClick=${(e) => {
-            e.stopImmediatePropagation();
-            me.emit('select-file', file)
-          }}
+          e.stopImmediatePropagation();
+          me.emit('select-file', file)
+        }}
 					onDblclick=${() => me.emit('dblclick-file', file)}
 				>
 					<span class="icon">${file.icon}</span>

@@ -6,30 +6,29 @@ const system = new Signal('#f0f0f0');
 const border = new Signal('#e0e0e0');
 
 const settingsMap = {
-	background,
-	highlight,
-	system,
-	border,
+  background,
+  highlight,
+  system,
+  border,
 };
 
 const settingtoPropertyMap = {
-	background: '--token-color-background',
-	highlight: '--token-color-highlight',
-	system: '--token-color-system',
-	border: '--token-color-border',
+  background: '--token-color-background',
+  highlight: '--token-color-highlight',
+  system: '--token-color-system',
+  border: '--token-color-border',
 };
 
 registerComponent('settings-app', ({ render, refs }) => {
-	const selectedColor = new Signal(null);
+  const selectedColor = new Signal(null);
 
-	Object.entries(settingsMap).forEach(([setting, signal]) => {
-		signal.on(newColor => {
-			refs[setting].style.color = newColor;
-			document.body.style.setProperty(settingtoPropertyMap[setting], newColor);
-		});
-	});
+  Object.entries(settingsMap).forEach(([setting, signal]) => {
+    signal.on(newColor => {
+      document.body.style.setProperty(settingtoPropertyMap[setting], newColor);
+    });
+  });
 
-	render`
+  render`
 <style>
 :host {
 	display: flex;
@@ -92,42 +91,37 @@ registerComponent('settings-app', ({ render, refs }) => {
 </style>
 
 <div id="swatches">
-	<button id="background" onClick=${() => selectedColor.value = 'background'}>
+	<button onClick=${() => selectedColor.value = 'background'} style=${background.as(color => ({ color }))}>
 		<span class="swatch"></span>
 		<span>background</span>
 	</button>
 	
-	<button id="highlight" onClick=${() => selectedColor.value = 'highlight'}>
+	<button id="highlight" onClick=${() => selectedColor.value = 'highlight'} style=${highlight.as(color => ({ color }))}>
 		<span class="swatch"></span>
 		<span>highlight</span>
 	</button>
 	
-	<button id="system" onClick=${() => selectedColor.value = 'system'}>
+	<button id="system" onClick=${() => selectedColor.value = 'system'} style=${system.as(color => ({ color }))}>
 		<span class="swatch"></span>
 		<span>system</span>
 	</button>
 	
-	<button id="border" onClick=${() => selectedColor.value = 'border'}>
+	<button id="border" onClick=${() => selectedColor.value = 'border'} style=${border.as(color => ({ color }))}>
 		<span class="swatch"></span>
 		<span>border</span>
 	</button>
 </div>
 
 <div id="picker">${selectedColor.as(selectedColor => {
-		if (!selectedColor) return '';
-		const currentHex = settingsMap[selectedColor];
-		return element`
+    if (!selectedColor) return '';
+    const currentHex = settingsMap[selectedColor];
+    return element`
 			<color-picker
 				initialvalue=${currentHex}
 				oncolor-picker-color=${({ detail }) => {
-					currentHex.value = detail;
-				}}
+        currentHex.value = detail;
+      }}
 			></color-picker>`;
-	})}</div>
+  })}</div>
 	`;
-
-	refs.background.style.color = background.value;
-	refs.highlight.style.color = highlight.value;
-	refs.system.style.color = system.value;
-	refs.border.style.color = border.value;
 });
