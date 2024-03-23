@@ -201,8 +201,10 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 	${files}
 </section>
 	`;
-}, class FileExplorer extends HTMLElement {
-  disconnectedCallback() {
-    this.liveView.close();
+}, {
+  getElementClass: BaseClass => class FileExplorer extends BaseClass {
+    disconnectedCallback() {
+      this.liveView.close();
+    }
   }
 });

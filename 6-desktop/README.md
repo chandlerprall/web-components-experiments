@@ -24,5 +24,4 @@ Interpolated attributes with "true", "false" and truthy/falsy values are handled
 
 ## Challenges to solve
 
-- `registerComponent`'s class extending is backwards
 - when attribute values are enclosed in quotes - `element<div id="${value}"></div>` - it isn't handled as an attribute

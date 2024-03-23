@@ -84,12 +84,14 @@ dialog {
 	<div id="content"><slot></slot></div>
 </dialog>
 	`;
-}, class DesktopWindow extends HTMLElement {
-  focus() {
-    this.emit('focus');
-  }
+}, {
+  getElementClass: BaseClass => class DesktopWindow extends BaseClass {
+    focus() {
+      this.emit('focus');
+    }
 
-  close() {
-    this.emit('close');
+    close() {
+      this.emit('close');
+    }
   }
 });

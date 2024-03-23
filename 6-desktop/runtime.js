@@ -453,7 +453,9 @@ const getElementContext = (element) => {
   return elementContext;
 }
 
-export function registerComponent(name, componentDefinition, BaseClass = HTMLElement) {
+export function registerComponent(name, componentDefinition, options = {}) {
+  const { getElementClass, elementRegistryOptions } = options;
+
   definedElements.add(name);
   const isComponentString = typeof componentDefinition === 'string';
   const isComponentFunction = componentDefinition instanceof Function;
@@ -468,6 +470,7 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
   const template = document.createElement('template');
   template.innerHTML = html;
 
+  const BaseClass = HTMLElement;
   const ComponentClass = class extends BaseClass {
     attributes = new Proxy(
       { [ATTRIBUTE_MAP]: new Signal(0) },
@@ -611,5 +614,7 @@ export function registerComponent(name, componentDefinition, BaseClass = HTMLEle
     }
   };
   Object.defineProperty(ComponentClass, 'name', { value: name });
-  customElements.define(name, ComponentClass);
+
+  const elementClass = getElementClass?.(ComponentClass) ?? ComponentClass;
+  customElements.define(name, elementClass, elementRegistryOptions);
 }
