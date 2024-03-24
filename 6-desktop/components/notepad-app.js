@@ -57,8 +57,8 @@ menu-bar {
 		<button slot="menu" onClick=${() => {
       openSaveDialog().then(filepath => {
         if (filepath) {
-          const hasAcceptibleExtension = ['.txt', '.md'].some(ext => filepath.endsWith(ext));
-          const finalFilepath = hasAcceptibleExtension ? filepath : `${filepath}.txt`;
+          const hasAcceptableExtension = ['.txt', '.md'].some(ext => filepath.endsWith(ext));
+          const finalFilepath = hasAcceptableExtension ? filepath : `${filepath}.txt`;
           writeFile(finalFilepath, refs.content.value);
           updateTitle(finalFilepath);
         }
