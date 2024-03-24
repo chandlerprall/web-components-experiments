@@ -85,7 +85,7 @@ dialog {
 </dialog>
 	`;
 }, {
-  getElementClass: BaseClass => class DesktopWindow extends BaseClass {
+  getElementClass: ComponentClass => class DesktopWindow extends ComponentClass {
     focus() {
       this.emit('focus');
     }

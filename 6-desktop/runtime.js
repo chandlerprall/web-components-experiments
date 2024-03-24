@@ -441,6 +441,8 @@ export const element = (...args) => {
   return element;
 }
 
+// https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#elements_you_can_attach_a_shadow_to
+const tagNamesThatSupportShadowRoot = new Set(['ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'BODY', 'DIV', 'FOOTER', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'MAIN', 'NAV', 'P', 'SECTION', 'SPAN']);
 const elementToContextMap = new WeakMap();
 const getElementContext = (element) => {
   let elementContext;
@@ -454,7 +456,7 @@ const getElementContext = (element) => {
 }
 
 export function registerComponent(name, componentDefinition, options = {}) {
-  const { getElementClass, elementRegistryOptions } = options;
+  const { getBaseClass, getElementClass, elementRegistryOptions } = options;
 
   definedElements.add(name);
   const isComponentString = typeof componentDefinition === 'string';
@@ -467,10 +469,7 @@ export function registerComponent(name, componentDefinition, options = {}) {
       .join('\n')
     : '';
 
-  const template = document.createElement('template');
-  template.innerHTML = html;
-
-  const BaseClass = HTMLElement;
+  const BaseClass = getBaseClass?.() ?? HTMLElement;
   const ComponentClass = class extends BaseClass {
     attributes = new Proxy(
       { [ATTRIBUTE_MAP]: new Signal(0) },
@@ -497,9 +496,7 @@ export function registerComponent(name, componentDefinition, options = {}) {
 
     refs = {};
 
-    constructor() {
-      super();
-
+    connectedCallback() {
       for (const attributeName of this.getAttributeNames()) {
         if (attributeName.startsWith('on')) continue;
         const attributeValue = this.getAttribute(attributeName);
@@ -517,10 +514,15 @@ export function registerComponent(name, componentDefinition, options = {}) {
       });
       mutationObserver.observe(this, { attributes: true, attributeOldValue: true });
 
-      const shadowRoot = this.attachShadow({
-        mode: 'open'
-      });
-      shadowRoot.appendChild(template.content.cloneNode(true));
+      // only autonomous custom elements & a short list of native elements support shadow roots
+      if (tagNamesThatSupportShadowRoot.has(this.tagName) || this.tagName.includes('-')) {
+        this.attachShadow({
+          mode: 'open'
+        });
+      } else {
+        // a shadow root, so we need to catch the error and fallback to using the element itself
+        Object.defineProperty(this, 'shadowRoot', { value: this });
+      }
 
       this.#initialize();
     }

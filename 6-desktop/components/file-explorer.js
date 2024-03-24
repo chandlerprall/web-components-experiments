@@ -202,7 +202,7 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 </section>
 	`;
 }, {
-  getElementClass: BaseClass => class FileExplorer extends BaseClass {
+  getElementClass: ComponentClass => class FileExplorer extends ComponentClass {
     disconnectedCallback() {
       this.liveView.close();
     }
