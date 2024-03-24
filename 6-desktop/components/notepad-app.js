@@ -66,14 +66,6 @@ menu-bar {
     }}>Save</button>
 	</popover-menu>
 </menu-bar>
-<form onSubmit=${e => {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    
-    console.log(e);
-  }}>
-  <input name="myinput" is="my-input"></input>
-</form>
 <textarea id="content"></textarea>`;
 
   refs.content.value = attributes.file?.value?.content || '';

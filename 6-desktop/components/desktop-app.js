@@ -1,4 +1,4 @@
-import { registerComponent, element } from 'runtime';
+import { registerComponent, element, Signal } from 'runtime';
 import { windows, taskbarButtons, launchWindow } from '../windowmanager.js'
 import { modals as fileModals, openFile } from '../filemanager.js';
 

@@ -23,7 +23,3 @@ Introduced `ConnectedNode` to better manage value rendering into DOM locations
 Interpolated attributes with "true", "false" and truthy/falsy values are handled correctly
 
 Added support for customized elements
-
-## Challenges to solve
-
-- when attribute values are enclosed in quotes - `element<div id="${value}"></div>` - it isn't handled as an attribute

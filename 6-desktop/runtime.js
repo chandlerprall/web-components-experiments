@@ -237,7 +237,7 @@ function processPart(part, attribute, hydrations) {
     idToValueMap[id] = part;
     if (attribute) {
       hydrations.push({ type: 'attribute', attribute, part, id });
-      return `"${id}"`;
+      return attribute.asValue(id);
     } else {
       hydrations.push({ type: 'dom', part, id });
       return `<data id="${id}"></data>`;
@@ -270,7 +270,7 @@ function processPart(part, attribute, hydrations) {
       const id = uniqueId();
       idToValueMap[id] = part;
       hydrations.push({ type: 'attribute', attribute, part, id });
-      return `"${id}"`;
+      return attribute.asValue(id);
     } else {
       return part.map(part => processPart(part, attribute, hydrations)).join('');
     }
@@ -278,14 +278,14 @@ function processPart(part, attribute, hydrations) {
     if (typeof part === 'boolean' || part === 'true' || part === 'false' || part == null) {
       const id = uniqueId();
       hydrations.push({ type: 'booleanattribute', attribute, part, id });
-      return `"${id}"`;
+      return attribute.asValue(id);
     } else if (typeof part === 'object') {
       const id = uniqueId();
       idToValueMap[id] = part;
       hydrations.push({ type: 'attribute', attribute, part, id });
-      return `"${id}"`;
+      return attribute.asValue(id);
     }
-    return `"${part}"`;
+    return attribute.asValue(part);
   }
   return part;
 }
@@ -298,10 +298,11 @@ class ComponentDefinition {
 }
 
 function getAttributeForExpression(prevString) {
-  if (prevString.at(-1) !== '=') return null;
+  const isQuoted = prevString.at(-1) === '"' && prevString.at(-2) === '=';
+  if (!isQuoted && prevString.at(-1) !== '=') return null;
 
   let attribute = '';
-  for (let i = prevString.length - 2; i >= 0; i--) {
+  for (let i = prevString.length - (isQuoted ? 3 : 2); i >= 0; i--) {
     const char = prevString.at(i);
     if (char.match(/\S/)) {
       attribute = char + attribute;
@@ -313,6 +314,7 @@ function getAttributeForExpression(prevString) {
   return {
     name: attribute,
     type: attribute.startsWith('on') ? 'handler' : 'attribute',
+    asValue: (value) => isQuoted ? value : `"${value}"`,
   };
 }
 
