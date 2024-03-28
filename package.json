@@ -5,8 +5,12 @@
   "author": "chandler.prall@gmail.com",
   "license": "OSL-3.0",
   "type": "module",
+  "scripts": {
+    "tsc": "tsc"
+  },
   "devDependencies": {
     "chai": "^5.1.0",
-    "jsdom-global": "^3.0.2"
+    "jsdom-global": "^3.0.2",
+    "typescript": "^5.4.3"
   }
 }
