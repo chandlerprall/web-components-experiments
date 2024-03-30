@@ -24,12 +24,18 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
     const sortedDirectories = [...directories].sort((a, b) => a.name.localeCompare(b.name));
     for (const directory of sortedDirectories) {
       directoriesList.push(element`
-				<button class="item directory" onDblclick=${() => {
-          const result = me.emit('dblclick-directory', directory);
-          if (result) {
-            liveView.navigate(`${liveView.path}/${directory.name}`)
-          }
-        }}>
+				<button
+				  class="item directory"
+				  onClick=${(e) => {
+            // e.stopImmediatePropagation();
+          }}
+          onDblclick=${() => {
+            const result = me.emit('dblclick-directory', directory);
+            if (result) {
+              liveView.navigate(`${liveView.path}/${directory.name}`)
+            }
+          }}
+        >
 					<span class="icon">📁</span>
 					<span class="name">${directory.name}</span>
 				</button>
@@ -57,9 +63,9 @@ registerComponent('file-explorer', ({ render, element: me, attributes }) => {
 					class="item file"
 					disabled=${!matchesFilters}
 					onClick=${(e) => {
-          e.stopImmediatePropagation();
-          me.emit('select-file', file)
-        }}
+            e.stopImmediatePropagation();
+            me.emit('select-file', file)
+          }}
 					onDblclick=${() => me.emit('dblclick-file', file)}
 				>
 					<span class="icon">${file.icon}</span>

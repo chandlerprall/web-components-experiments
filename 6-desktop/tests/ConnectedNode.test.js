@@ -3,7 +3,7 @@ import { expect } from 'chai';
 jsdom(undefined, { url: 'http://localhost' });
 
 async function insertion() {
-  const { ConnectedNode } = await import('./runtime.js');
+  const { ConnectedNode } = await import('../runtime.js');
 
   it('inserts strings as a text node', () => {
     const wrapper = document.createElement('div');
@@ -63,7 +63,7 @@ async function insertion() {
 }
 
 async function replace() {
-  const { ConnectedNode } = await import('./runtime.js');
+  const { ConnectedNode } = await import('../runtime.js');
 
   it('replaces with a text node', () => {
     const container = document.createElement('div');
@@ -108,7 +108,7 @@ async function replace() {
 }
 
 async function disconnect() {
-  const { ConnectedNode } = await import('./runtime.js');
+  const { ConnectedNode } = await import('../runtime.js');
 
   it('disconnects an inserted text node', () => {
     const wrapper = document.createElement('div');
@@ -164,7 +164,7 @@ async function disconnect() {
 };
 
 async function update() {
-  const { ConnectedNode } = await import('./runtime.js');
+  const { ConnectedNode } = await import('../runtime.js');
 
   it('updates an inserted text node', () => {
     const wrapper = document.createElement('div');
@@ -276,7 +276,7 @@ async function update() {
 };
 
 async function isAGoodNeighbor() {
-  const { ConnectedNode } = await import('./runtime.js');
+  const { ConnectedNode } = await import('../runtime.js');
 
   it('does not affect siblings when inserted', () => {
     const wrapper = document.createElement('div');

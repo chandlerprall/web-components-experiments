@@ -191,7 +191,7 @@ export const html = (...args) => {
     const { html, hydrate } = render(...args);
     const document = domParser.parseFromString(html, "text/html");
     hydrate(document.body);
-    // @ts-ignore-next-line
+    // @ts-ignore
     return new ContainedNodeArray(...document.body.childNodes);
 };
 let _id = 0;
@@ -201,8 +201,8 @@ const uniqueId = () => {
 function processPart(part, attribute, hydrations) {
     if (part instanceof Signal) {
         const id = uniqueId();
-        idToValueMap[id] = part;
         if (attribute) {
+            magicBagOfHolding[id] = part;
             hydrations.push({ type: "attribute", attribute, part, id });
             return attribute.asValue(id);
         }
@@ -218,7 +218,6 @@ function processPart(part, attribute, hydrations) {
     }
     else if (part instanceof ContainedNodeArray) {
         const id = uniqueId();
-        idToValueMap[id] = part;
         hydrations.push({ type: "dom", part, id });
         return `<data id="${id}"></data>`;
     }
@@ -231,14 +230,14 @@ function processPart(part, attribute, hydrations) {
     }
     else if (part instanceof HTMLElement) {
         const id = uniqueId();
-        idToValueMap[id] = part;
+        magicBagOfHolding[id] = part;
         hydrations.push({ type: "element", part, id });
         return `<data id="${id}"></data>`;
     }
     else if (Array.isArray(part)) {
         if (attribute) {
             const id = uniqueId();
-            idToValueMap[id] = part;
+            magicBagOfHolding[id] = part;
             hydrations.push({ type: "attribute", attribute, part, id });
             return attribute.asValue(id);
         }
@@ -254,7 +253,7 @@ function processPart(part, attribute, hydrations) {
         }
         else if (typeof part === "object" || Array.isArray(part)) {
             const id = uniqueId();
-            idToValueMap[id] = part;
+            magicBagOfHolding[id] = part;
             hydrations.push({ type: "attribute", attribute, part, id });
             return attribute.asValue(id);
         }
@@ -292,7 +291,14 @@ function getAttributeForExpression(prevString) {
 }
 const ATTRIBUTE_MAP = Symbol("attribute map");
 const definedElements = new Set();
-const idToValueMap = {};
+const magicBagOfHolding = {};
+// @ts-ignore
+window.magicBagOfHolding = magicBagOfHolding;
+const collectValue = (id) => {
+    const value = magicBagOfHolding[id];
+    delete magicBagOfHolding[id];
+    return value;
+};
 const render = (strings = [""], ...rest) => {
     const hydrations = [];
     const allParts = [...strings];
@@ -313,18 +319,18 @@ const render = (strings = [""], ...rest) => {
             const { type } = hydration;
             if (type === "dom") {
                 const { id, part } = hydration;
-                const dataNode = (owningElement.shadowRoot ?? owningElement).querySelector(`[id="${id}"]`) ?? owningElement;
+                const dataNode = owningElement.shadowRoot?.querySelector(`[id="${id}"]`) ?? owningElement.querySelector(`[id="${id}"]`) ?? owningElement;
                 part.connect(dataNode, { replace: true });
             }
             else if (type === "element") {
                 const { id, part } = hydration;
-                const dataNode = (owningElement.shadowRoot ?? owningElement).querySelector(`[id="${id}"]`) ?? owningElement;
+                const dataNode = owningElement.shadowRoot?.querySelector(`[id="${id}"]`) ?? owningElement.querySelector(`[id="${id}"]`) ?? owningElement;
                 dataNode.before(part);
                 dataNode.remove();
             }
             else if (type === "attribute") {
                 const { id, attribute, part } = hydration;
-                const element = (owningElement.shadowRoot ?? owningElement).querySelector(`[${attribute.name}="${id}"]`) ?? owningElement;
+                const element = owningElement.shadowRoot?.querySelector(`[${attribute.name}="${id}"]`) ?? owningElement.querySelector(`[${attribute.name}="${id}"]`) ?? owningElement;
                 const elementTagLower = element.tagName.toLowerCase();
                 if (attribute.name === "style") {
                     element.removeAttribute("style");
@@ -376,21 +382,26 @@ const render = (strings = [""], ...rest) => {
                                 if (definedElements.has(elementTagLower) === false)
                                     return; // don't swap out if we don't control the element
                                 part.off(updateAttribute);
-                                const id = uniqueId();
-                                idToValueMap[id] = part;
-                                element.setAttribute(attribute.name, id);
+                                element.setAttribute(attribute.name, hydration.id);
                             });
                         }
                     }
                     else {
-                        // @TODO: handle this non-signal case
-                        console.error(`unimplemented case for attribute ${attribute.name}`);
+                        element.setAttribute(attribute.name, `${part}`);
+                        // if this element could be a custom element, when it's defined we may yield control of the attribute to the component itself
+                        if (elementTagLower.indexOf("-") !== -1) {
+                            customElements.whenDefined(elementTagLower).then(() => {
+                                if (definedElements.has(elementTagLower) === false)
+                                    return; // don't swap out if we don't control the element
+                                element.setAttribute(attribute.name, hydration.id);
+                            });
+                        }
                     }
                 }
             }
             else if (type === "booleanattribute") {
                 const { id, attribute, part } = hydration;
-                const element = (owningElement.shadowRoot ?? owningElement).querySelector(`[${attribute.name}="${id}"]`) ?? owningElement;
+                const element = owningElement.shadowRoot?.querySelector(`[${attribute.name}="${id}"]`) ?? owningElement.querySelector(`[${attribute.name}="${id}"]`) ?? owningElement;
                 if (!part) {
                     element.removeAttribute(attribute.name);
                 }
@@ -403,7 +414,7 @@ const render = (strings = [""], ...rest) => {
                 const { part: { [ATTRIBUTE_MAP]: publisher, ...part }, id, } = hydration;
                 const updateAttributes = () => {
                     for (const attributeName in part) {
-                        const targetElement = (owningElement.shadowRoot ?? owningElement).querySelector(`[data-attribute-map="${id}"]`) ?? owningElement;
+                        const targetElement = owningElement.shadowRoot?.querySelector(`[data-attribute-map="${id}"]`) ?? owningElement.querySelector(`[data-attribute-map="${id}"]`) ?? owningElement;
                         if (typeof part[attributeName].value === "string") {
                             targetElement.setAttribute(attributeName, part[attributeName].value);
                         }
@@ -418,7 +429,7 @@ const render = (strings = [""], ...rest) => {
             }
             else if (type === "handler") {
                 const { id, eventName, part } = hydration;
-                const targetElement = (owningElement.shadowRoot ?? owningElement).querySelector(`[${eventName}="${id}"]`) ?? owningElement;
+                const targetElement = owningElement.shadowRoot?.querySelector(`[${eventName}="${id}"]`) ?? owningElement.querySelector(`[${eventName}="${id}"]`) ?? owningElement;
                 targetElement.removeAttribute(eventName);
                 targetElement.addEventListener(eventName.replace(/^on/, "").toLowerCase(), part);
             }
@@ -428,8 +439,10 @@ const render = (strings = [""], ...rest) => {
 };
 export const element = (...args) => {
     const { html, hydrate } = render(...args);
-    const document = domParser.parseFromString(html, "text/html");
-    const element = document.body.firstElementChild;
+    const parsingNode = document.createElement('div');
+    parsingNode.innerHTML = html;
+    const element = parsingNode.firstElementChild;
+    parsingNode.innerHTML = '';
     hydrate(element);
     return element;
 };
@@ -471,7 +484,10 @@ export function registerComponent(name, componentDefinition, options = {}) {
             },
         });
         refs = {};
-        connectedCallback() {
+        // @TODO: move things here
+        //connectedCallback() {}
+        constructor() {
+            super();
             for (const attributeName of this.getAttributeNames()) {
                 if (attributeName.startsWith("on"))
                     continue;
@@ -509,7 +525,7 @@ export function registerComponent(name, componentDefinition, options = {}) {
             }
             if (value?.match(/^_unique_id_\d+/)) {
                 // @TODO: garbage collection (call off on component disconnectedCallback?)
-                const data = idToValueMap[value];
+                const data = collectValue(value);
                 if (data instanceof Signal) {
                     data.on((nextValue) => {
                         this.attributeValues[attributeName] = nextValue;
