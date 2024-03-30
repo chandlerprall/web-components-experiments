@@ -37,14 +37,14 @@ export declare class Signal<ValueType = unknown> {
     disconnect(): void;
     toString(): string | undefined;
 }
-export declare const html: (args_0: string[], ...args_1: unknown[]) => ContainedNodeArray;
-export declare const element: (args_0: string[], args_1: unknown[]) => HTMLElement;
+export declare const html: (args_0: TemplateStringsArray, ...args_1: any[]) => ContainedNodeArray;
+export declare const element: (args_0: TemplateStringsArray, ...args_1: any[]) => HTMLElement;
 type StringWithHyphen = `${string}-${string}`;
 type ComponentDefinitionFn = (options: {
     element: HTMLElement;
-    render: (strings: string[], ...rest: unknown[]) => void;
+    render: (strings: TemplateStringsArray, ...rest: any[]) => void;
     refs: Record<string, Element>;
-    attributes: Record<string, Signal>;
+    attributes: Record<string, any>;
     context: Record<string, unknown>;
 }) => void;
 interface ComponentDefinitionOptions {

@@ -299,7 +299,7 @@ const collectValue = (id) => {
     delete magicBagOfHolding[id];
     return value;
 };
-const render = (strings = [""], ...rest) => {
+const render = (strings, ...rest) => {
     const hydrations = [];
     const allParts = [...strings];
     for (let i = 0; i < rest.length; i++) {

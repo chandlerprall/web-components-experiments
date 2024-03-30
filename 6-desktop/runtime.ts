@@ -225,7 +225,7 @@ export class Signal<ValueType = unknown> {
 }
 
 const domParser = new window.DOMParser();
-export const html = (...args: [string[], ...unknown[]]) => {
+export const html = (...args: [TemplateStringsArray, ...any[]]) => {
 	const { html, hydrate } = render(...args);
 	const document = domParser.parseFromString(html, "text/html");
 	hydrate(document.body);
@@ -374,7 +374,7 @@ interface ElementHydration {
 	part: HTMLElement;
 }
 type Hydration = DOMHydration | AttributeHydration | BooleanAttributeHydration | AttributeMapHydration | HandlerHydration | ElementHydration;
-const render = (strings: string[] = [""], ...rest: unknown[]) => {
+const render = (strings: TemplateStringsArray, ...rest: any[]) => {
 	const hydrations: Hydration[] = [];
 	const allParts = [...strings];
 
@@ -506,7 +506,7 @@ const render = (strings: string[] = [""], ...rest: unknown[]) => {
 	return new ComponentDefinition(html, hydrate);
 };
 
-export const element = (...args: [string[], unknown[]]) => {
+export const element = (...args: [TemplateStringsArray, ...any[]]) => {
 	const { html, hydrate } = render(...args);
 
 	const parsingNode = document.createElement('div');
@@ -535,7 +535,7 @@ const getElementContext = (element: Element) => {
 
 type StringWithHyphen = `${string}-${string}`;
 
-type ComponentDefinitionFn = (options: { element: HTMLElement; render: (strings: string[], ...rest: unknown[]) => void; refs: Record<string, Element>; attributes: Record<string, Signal>; context: Record<string, unknown> }) => void;
+type ComponentDefinitionFn = (options: { element: HTMLElement; render: (strings: TemplateStringsArray, ...rest: any[]) => void; refs: Record<string, Element>; attributes: Record<string, any>; context: Record<string, unknown> }) => void;
 
 interface ComponentDefinitionOptions {
 	getBaseClass?: () => typeof HTMLElement;
