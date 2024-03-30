@@ -12,7 +12,7 @@ loading...
 	import { element, Signal, registerComponent } from '../runtime.js';
 
 	registerComponent('gc-debugger', ({ render, attributes }) => {
-		// attributes.value.as(value => console.log(value));
+		// attributes.value.as(value => value());
 	});
 
 
@@ -46,6 +46,14 @@ loading...
 		}
 	});
 
+	makeSection('element passing static function', () => {
+		for (let i = 0; i < 10000; i++) {
+			const handler = () => {};
+			handler.also = makeObject(5);
+			element`<gc-debugger value=${handler}></gc-debugger>`;
+		}
+	});
+
 	makeSection('element passing number signal', () => {
 		for (let i = 0; i < 10000; i++) {
 			element`<gc-debugger value=${new Signal(i)}></gc-debugger>`;
@@ -68,8 +76,15 @@ loading...
 		for (let i = 0; i < 10000; i++) {
 			const handler = () => {console.log('here')};
 			handler.also = makeObject(5);
-			const signal = new Signal(handler);
-			element`<gc-debugger onclick=${signal}></gc-debugger>`;
+			element`<gc-debugger onclick=${new Signal(handler)}></gc-debugger>`;
+		}
+	});
+
+	makeSection('element passing function signal', () => {
+		for (let i = 0; i < 10000; i++) {
+			const handler = () => {};
+			handler.also = makeObject(5);
+			element`<gc-debugger value=${handler}></gc-debugger>`;
 		}
 	});
 
