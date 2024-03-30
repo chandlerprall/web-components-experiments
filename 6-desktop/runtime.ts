@@ -242,8 +242,12 @@ function processPart(part: unknown, attribute: Attribute | null, hydrations: Hyd
 	if (part instanceof Signal) {
 		const id = uniqueId();
 		if (attribute) {
-			magicBagOfHolding[id] = part;
-			hydrations.push({ type: "attribute", attribute, part, id });
+			if (attribute.type === "handler") {
+				hydrations.push({ type: "handler", part, id, eventName: attribute.name });
+			} else {
+				magicBagOfHolding[id] = part;
+				hydrations.push({ type: "attribute", attribute, part, id });
+			}
 			return attribute.asValue(id);
 		} else {
 			hydrations.push({ type: "dom", part, id });
@@ -258,11 +262,17 @@ function processPart(part: unknown, attribute: Attribute | null, hydrations: Hyd
 		hydrations.push({ type: "dom", part, id });
 		return `<data id="${id}"></data>`;
 	} else if (part instanceof Function) {
-		const id = uniqueId();
-		if (attribute?.type === "handler") {
-			hydrations.push({ type: "handler", part: part as EventListener, id, eventName: attribute.name });
+		if (attribute) {
+			const id = uniqueId();
+			if (attribute?.type === "handler") {
+				hydrations.push({ type: "handler", part: part as EventListener, id, eventName: attribute.name });
+			} else {
+				magicBagOfHolding[id] = part;
+				hydrations.push({ type: "attribute", attribute, part, id });
+			}
+			return attribute.asValue(id);
 		}
-		return `"${id}"`;
+		return `${part}`;
 	} else if (part instanceof HTMLElement) {
 		const id = uniqueId();
 		magicBagOfHolding[id] = part;
@@ -365,7 +375,7 @@ interface AttributeMapHydration {
 interface HandlerHydration {
 	type: "handler";
 	id: string;
-	part: EventListener;
+	part: EventListener | Signal<EventListener | null | undefined>;
 	eventName: string;
 }
 interface ElementHydration {
@@ -374,7 +384,7 @@ interface ElementHydration {
 	part: HTMLElement;
 }
 type Hydration = DOMHydration | AttributeHydration | BooleanAttributeHydration | AttributeMapHydration | HandlerHydration | ElementHydration;
-const render = (strings: TemplateStringsArray, ...rest: any[]) => {
+const render = (strings: TemplateStringsArray = [''] as unknown as TemplateStringsArray, ...rest: any[]) => {
 	const hydrations: Hydration[] = [];
 	const allParts = [...strings];
 
@@ -496,9 +506,25 @@ const render = (strings: TemplateStringsArray, ...rest: any[]) => {
 				publisher.on(() => updateAttributes());
 			} else if (type === "handler") {
 				const { id, eventName, part } = hydration;
+				const listenerEvent = eventName.replace(/^on/, "").toLowerCase();
 				const targetElement = owningElement.shadowRoot?.querySelector(`[${eventName}="${id}"]`) ?? owningElement.querySelector(`[${eventName}="${id}"]`) ?? owningElement;
 				targetElement.removeAttribute(eventName);
-				targetElement.addEventListener(eventName.replace(/^on/, "").toLowerCase(), part);
+
+				if (part instanceof Signal) {
+					let currentListener = part.value;
+					if (currentListener) {
+						targetElement.addEventListener(listenerEvent, currentListener);
+					}
+					part.on((nextListener) => {
+						targetElement.removeEventListener(listenerEvent, currentListener as EventListener);
+						if (nextListener) {
+							targetElement.addEventListener(listenerEvent, nextListener);
+						}
+						currentListener = nextListener;
+					});
+				} else {
+					targetElement.addEventListener(listenerEvent, part);
+				}
 			}
 		}
 	};

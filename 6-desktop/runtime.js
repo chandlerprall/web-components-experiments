@@ -202,8 +202,13 @@ function processPart(part, attribute, hydrations) {
     if (part instanceof Signal) {
         const id = uniqueId();
         if (attribute) {
-            magicBagOfHolding[id] = part;
-            hydrations.push({ type: "attribute", attribute, part, id });
+            if (attribute.type === "handler") {
+                hydrations.push({ type: "handler", part, id, eventName: attribute.name });
+            }
+            else {
+                magicBagOfHolding[id] = part;
+                hydrations.push({ type: "attribute", attribute, part, id });
+            }
             return attribute.asValue(id);
         }
         else {
@@ -222,11 +227,18 @@ function processPart(part, attribute, hydrations) {
         return `<data id="${id}"></data>`;
     }
     else if (part instanceof Function) {
-        const id = uniqueId();
-        if (attribute?.type === "handler") {
-            hydrations.push({ type: "handler", part: part, id, eventName: attribute.name });
+        if (attribute) {
+            const id = uniqueId();
+            if (attribute?.type === "handler") {
+                hydrations.push({ type: "handler", part: part, id, eventName: attribute.name });
+            }
+            else {
+                magicBagOfHolding[id] = part;
+                hydrations.push({ type: "attribute", attribute, part, id });
+            }
+            return attribute.asValue(id);
         }
-        return `"${id}"`;
+        return `${part}`;
     }
     else if (part instanceof HTMLElement) {
         const id = uniqueId();
@@ -299,7 +311,7 @@ const collectValue = (id) => {
     delete magicBagOfHolding[id];
     return value;
 };
-const render = (strings, ...rest) => {
+const render = (strings = [''], ...rest) => {
     const hydrations = [];
     const allParts = [...strings];
     for (let i = 0; i < rest.length; i++) {
@@ -429,9 +441,25 @@ const render = (strings, ...rest) => {
             }
             else if (type === "handler") {
                 const { id, eventName, part } = hydration;
+                const listenerEvent = eventName.replace(/^on/, "").toLowerCase();
                 const targetElement = owningElement.shadowRoot?.querySelector(`[${eventName}="${id}"]`) ?? owningElement.querySelector(`[${eventName}="${id}"]`) ?? owningElement;
                 targetElement.removeAttribute(eventName);
-                targetElement.addEventListener(eventName.replace(/^on/, "").toLowerCase(), part);
+                if (part instanceof Signal) {
+                    let currentListener = part.value;
+                    if (currentListener) {
+                        targetElement.addEventListener(listenerEvent, currentListener);
+                    }
+                    part.on((nextListener) => {
+                        targetElement.removeEventListener(listenerEvent, currentListener);
+                        if (nextListener) {
+                            targetElement.addEventListener(listenerEvent, nextListener);
+                        }
+                        currentListener = nextListener;
+                    });
+                }
+                else {
+                    targetElement.addEventListener(listenerEvent, part);
+                }
             }
         }
     };

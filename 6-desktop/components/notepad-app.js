@@ -12,7 +12,7 @@ registerComponent('notepad-app', ({ render, refs, attributes, context }) => {
       context[DesktopWindowContext].title.value = 'Notepad';
     }
   };
-  updateTitle();
+  updateTitle(attributes.file.value?.path);
 
   render`
 <style>
@@ -68,6 +68,6 @@ menu-bar {
 </menu-bar>
 <textarea id="content"></textarea>`;
 
-  refs.content.value = attributes.file?.value?.content || '';
+  refs.content.value = attributes.file.value?.content || '';
   refs.content.focus()
 });

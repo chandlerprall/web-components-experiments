@@ -11,7 +11,7 @@ loading...
 <script type="module">
 	import { element, Signal, registerComponent } from '../runtime.js';
 
-	registerComponent('gc-debugger', ({ attributes }) => {
+	registerComponent('gc-debugger', ({ render, attributes }) => {
 		// attributes.value.as(value => console.log(value));
 	});
 
@@ -19,7 +19,6 @@ loading...
 	document.body.innerText = '';
 
 	const lorum = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
-	// warmEngines();
 
 	makeSection('element', () => {
 		for (let i = 0; i < 10000; i++) {
@@ -39,6 +38,14 @@ loading...
 		}
 	});
 
+	makeSection('element passing static handler', () => {
+		for (let i = 0; i < 10000; i++) {
+			const handler = () => {};
+			handler.also = makeObject(5);
+			element`<gc-debugger onclick=${handler}></gc-debugger>`;
+		}
+	});
+
 	makeSection('element passing number signal', () => {
 		for (let i = 0; i < 10000; i++) {
 			element`<gc-debugger value=${new Signal(i)}></gc-debugger>`;
@@ -54,6 +61,15 @@ loading...
 	makeSection('element passing array signal', () => {
 		for (let i = 0; i < 10000; i++) {
 			element`<gc-debugger value=${new Signal(makeArray(5))}></gc-debugger>`;
+		}
+	});
+
+	makeSection('element passing handler signal', () => {
+		for (let i = 0; i < 10000; i++) {
+			const handler = () => {console.log('here')};
+			handler.also = makeObject(5);
+			const signal = new Signal(handler);
+			element`<gc-debugger onclick=${signal}></gc-debugger>`;
 		}
 	});
 
@@ -101,13 +117,6 @@ loading...
 			arr.push(makeArray(widthAndDepth - 1));
 		}
 		return arr;
-	}
-
-	function warmEngines() {
-		for (let i = 0; i < 100; i++) {
-			element`<div>${makeString(10000)}</div>`;
-			element`<div>${makeObject(7)}</div>`;
-		}
 	}
 </script>
 
