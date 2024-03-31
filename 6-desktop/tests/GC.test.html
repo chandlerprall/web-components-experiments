@@ -12,6 +12,7 @@ loading...
 	import { element, Signal, registerComponent } from '../runtime.js';
 
 	registerComponent('gc-debugger', ({ render, attributes }) => {
+		render`<slot></slot>`;
 		// attributes.value.as(value => value());
 	});
 
@@ -85,6 +86,48 @@ loading...
 			const handler = () => {};
 			handler.also = makeObject(5);
 			element`<gc-debugger value=${handler}></gc-debugger>`;
+		}
+	});
+
+	makeSection('render', () => {
+		registerComponent('render-test', ({ render }) => {
+			const data = makeObject(5);
+			render`<gc-debugger value=${data}></gc-debugger>`;
+		});
+
+		for (let i = 0; i < 10000; i++) {
+			element`<render-test></render-test>`;
+		}
+	});
+
+	makeSection('render attributes', () => {
+		registerComponent('render-attributes', ({ render, attributes }) => {
+			render`<gc-debugger>${attributes.val} - ${attributes.ue}</gc-debugger>`;
+		});
+
+		for (let i = 0; i < 10000; i++) {
+			element`<render-attributes val=${makeObject(5)} ue=${new Signal(makeArray(3))}></render-attributes>`;
+		}
+	});
+
+	makeSection('render context', () => {
+		registerComponent('render-context', ({ render, context }) => {
+			context.data = makeObject(5);
+			render`<gc-debugger></gc-debugger>`;
+		});
+
+		for (let i = 0; i < 10000; i++) {
+			element`<render-context></render-context>`;
+		}
+	});
+
+	makeSection('render refs', () => {
+		registerComponent('render-refs', ({ render, refs }) => {
+			render`<gc-debugger id="hello"></gc-debugger>`;
+		});
+
+		for (let i = 0; i < 10000; i++) {
+			element`<render-refs></render-refs>`;
 		}
 	});
 
